@@ -1,0 +1,37 @@
+name: HycraftQuestsAddons
+authors:
+  - JustOp_
+version: '1.0-SNAPSHOT'
+main: fr.justop.hycraftQuestsAddons.HycraftQuestsAddons
+api-version: '1.20'
+depend:
+  - BeautyQuests
+  - Citizens
+  - PlaceholderAPI
+
+commands:
+  registerPlayerGoats:
+    description: initialise la Hash Map
+  startStage4:
+    description: force le début d'un dialogue
+  endDiplo:
+    description: tkt frr
+  q:
+    description: pk pas
+  arena:
+    description: ah
+  sword:
+    description: ..
+  horse:
+    description: horse
+  giveCompassGoats:
+    description: goats
+
+permissions:
+  hycraft.questsaddons.hasfoundgoats:
+    description: 'Est donné dans la quête: les chèvres de M.Sevin'
+  hycraft.dropper.exit:
+    description: 'Permet de sortir du dropper'
+
+  hycraft.questsaddons.boss1:
+    description: Quand tu finis le boss p3
