@@ -3,7 +3,7 @@ package fr.justop.hycraftQuestsAddons.listeners;
 import fr.justop.hycraftQuestsAddons.HycraftQuestsAddons;
 import fr.justop.hycraftQuestsAddons.objects.ComposterLaunchTask;
 import fr.skytasul.quests.api.QuestsAPI;
-import fr.skytasul.quests.api.players.PlayerAccount;
+import fr.skytasul.quests.api.questers.Quester;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -11,7 +11,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
@@ -36,9 +35,9 @@ public class ComposterLaunch implements Listener {
 		if (message.equalsIgnoreCase("Kaboum!")) {
 			Block block = player.getLocation().getBlock();
 			QuestsAPI questsAPI = HycraftQuestsAddons.getQuestsAPI();
-			PlayerAccount acc = questsAPI.getPlugin().getPlayersManager().getAccount(player);
+			Quester acc = questsAPI.getPlugin().getPlayersManager().getQuester(player);
 
-			if (!(acc.getQuestDatas(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(115))).getStage() == 1)) return;
+			if (!(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(115))).getStage().getAsInt() == 1)) return;
 
 			if (block.getType() == Material.COMPOSTER) {
 

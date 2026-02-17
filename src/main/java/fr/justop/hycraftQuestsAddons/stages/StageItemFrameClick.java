@@ -11,8 +11,7 @@ import fr.skytasul.quests.api.stages.creation.StageCreation;
 import fr.skytasul.quests.api.stages.creation.StageCreationContext;
 import fr.skytasul.quests.api.stages.creation.StageGuiLine;
 import fr.skytasul.quests.api.stages.types.Locatable;
-import fr.skytasul.quests.api.utils.MinecraftVersion;
-import fr.skytasul.quests.api.utils.XMaterial;
+import com.cryptomorin.xseries.XMaterial;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -33,7 +32,7 @@ public class StageItemFrameClick extends AbstractStage implements Locatable.Prec
 
     private final @NotNull BQLocation lc;
 
-    private Located.LocatedBlock locatedBlock;
+    private Locatable.Located.LocatedBlock locatedBlock;
 
     public StageItemFrameClick(@NotNull StageController controller, @NotNull BQLocation location) {
         super(controller);
@@ -45,13 +44,13 @@ public class StageItemFrameClick extends AbstractStage implements Locatable.Prec
     }
 
     @Override
-    public Located getLocated() {
+    public Locatable.Located getLocated() {
         if (lc == null)
             return null;
         if (locatedBlock == null) {
             Block realBlock = lc.getBlock();
             if (realBlock != null)
-                locatedBlock = Located.LocatedBlock.create(realBlock);
+                locatedBlock = Locatable.Located.LocatedBlock.create(realBlock);
         }
         return locatedBlock;
     }
@@ -61,13 +60,13 @@ public class StageItemFrameClick extends AbstractStage implements Locatable.Prec
         if (e.getRightClicked().getType() != EntityType.ITEM_FRAME) return;
 
         ItemFrame itemFrame = (ItemFrame) e.getRightClicked();
-        if (!lc.equals(getAttachedBlock(itemFrame).getLocation())) return;
+        if (!lc.equals(BQLocation.of(getAttachedBlock(itemFrame).getLocation()))) return;
 
         Player p = e.getPlayer();
 
-        if (hasStarted(p) && canUpdate(p)) {
+        if (hasApplicableQuester(p) && matchesRequirements(p)) {
             e.setCancelled(true);
-            finishStage(p);
+            controller.getApplicableQuesters(p).forEach(this::finishStage);
         }
     }
 

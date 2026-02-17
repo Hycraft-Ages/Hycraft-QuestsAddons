@@ -3,12 +3,10 @@ package fr.justop.hycraftQuestsAddons.listeners;
 import fr.justop.hycraftQuestsAddons.BossQuestUtils;
 import fr.justop.hycraftQuestsAddons.HycraftQuestsAddons;
 import fr.skytasul.quests.api.QuestsAPI;
-import fr.skytasul.quests.api.players.PlayerAccount;
-import io.lumine.mythic.bukkit.BukkitAPIHelper;
+import fr.skytasul.quests.api.questers.Quester;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import io.lumine.mythic.bukkit.events.MythicMobDeathEvent;
 import io.lumine.mythic.core.mobs.ActiveMob;
-import io.lumine.mythic.core.skills.mechanics.FireworkEffect;
 import org.bukkit.*;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BossBar;
@@ -20,7 +18,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemFlag;
@@ -33,7 +30,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.Arrays;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.UUID;
 
 public class ArenaListener implements Listener
@@ -157,9 +154,9 @@ public class ArenaListener implements Listener
             if(!(event.getClickedBlock().getLocation().equals(new Location(Bukkit.getWorld("Prehistoire"),-25,-21, -328)))) return;
             event.setCancelled(true);
             QuestsAPI questsAPI = HycraftQuestsAddons.getQuestsAPI();
-            PlayerAccount acc = questsAPI.getPlugin().getPlayersManager().getAccount(player);
+            Quester acc = questsAPI.getPlugin().getPlayersManager().getQuester(player);
 
-            if (!(acc.getQuestDatas(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(124))).getStage() == 6)) return;
+            if (!(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(124))).getStage().getAsInt() == 6)) return;
 
             ItemStack book = new ItemStack(Material.BOOK);
             ItemMeta meta = book.getItemMeta();
@@ -245,12 +242,12 @@ public class ArenaListener implements Listener
         HycraftQuestsAddons.getInstance().getShieldPlayers().remove(player.getUniqueId());
 
         QuestsAPI questsAPI = HycraftQuestsAddons.getQuestsAPI();
-        PlayerAccount acc = questsAPI.getPlugin().getPlayersManager().getAccount(player);
+        Quester acc = questsAPI.getPlugin().getPlayersManager().getQuester(player);
 
         if(mode == 0){
-            acc.getQuestDatas(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(118))).setStage(7);
+            acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(118))).setStage(OptionalInt.of(7));
         }else {
-            acc.getQuestDatas(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(138))).setStage(1);
+            acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(138))).setStage(OptionalInt.of(1));
         }
 
         player.sendMessage(HycraftQuestsAddons.PREFIX + "§cTu as échoué! Tache d'être plus agile au prochain essai!");

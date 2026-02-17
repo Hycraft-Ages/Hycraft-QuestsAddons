@@ -3,7 +3,7 @@ package fr.justop.hycraftQuestsAddons.listeners;
 import fr.justop.hycraftQuestsAddons.HycraftQuestsAddons;
 import fr.justop.hycraftQuestsAddons.objects.CuboidRegion;
 import fr.skytasul.quests.api.QuestsAPI;
-import fr.skytasul.quests.api.players.PlayerAccount;
+import fr.skytasul.quests.api.questers.Quester;
 import fr.skytasul.quests.api.quests.Quest;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -20,12 +20,12 @@ public class DropperListener implements Listener
 
         Player player = event.getPlayer();
         QuestsAPI questsAPI = HycraftQuestsAddons.getQuestsAPI();
-        PlayerAccount acc = questsAPI.getPlugin().getPlayersManager().getAccount(player);
+        Quester acc = questsAPI.getPlugin().getPlayersManager().getQuester(player);
 
         Quest quest = questsAPI.getQuestsManager().getQuest(102);
         if(quest == null) return;
 
-        if(!(acc.getQuestDatas(quest).getStage() == 2))
+        if(!(acc.getDataHolder().getQuestData(quest).getStage().getAsInt() == 2))
         {
             Location playerLocation = player.getLocation();
             for (Location triggerLocation : HycraftQuestsAddons.getInstance().getTriggerLocations()) {
@@ -46,13 +46,13 @@ public class DropperListener implements Listener
         if (to == null) return;
 
         QuestsAPI questsAPI = HycraftQuestsAddons.getQuestsAPI();
-        PlayerAccount acc = questsAPI.getPlugin().getPlayersManager().getAccount(player);
+        Quester acc = questsAPI.getPlugin().getPlayersManager().getQuester(player);
 
         Quest quest = questsAPI.getQuestsManager().getQuest(102);
         if(quest == null) return;
-        if(!acc.hasQuestDatas(quest)) return;
-        if(acc.getQuestDatas(quest).isFinished()) return;
-        if(acc.getQuestDatas(quest).getStage() > 2) return;
+        if(!acc.getDataHolder().hasQuestData(quest)) return;
+        if(acc.getDataHolder().getQuestData(quest).hasFinishedOnce()) return;
+        if(acc.getDataHolder().getQuestData(quest).getStage().getAsInt() > 2) return;
 
         for (String name : HycraftQuestsAddons.getInstance().getRegions().keySet()) {
             if (HycraftQuestsAddons.getInstance().getRegions().get("TeleportRegion").isInside(to)) {

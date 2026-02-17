@@ -3,7 +3,7 @@ package fr.justop.hycraftQuestsAddons.listeners;
 import fr.justop.hycraftQuestsAddons.BossQuestUtils;
 import fr.justop.hycraftQuestsAddons.HycraftQuestsAddons;
 import fr.skytasul.quests.api.QuestsAPI;
-import fr.skytasul.quests.api.players.PlayerAccount;
+import fr.skytasul.quests.api.questers.Quester;
 import org.bukkit.*;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
@@ -85,9 +85,9 @@ public class ArrowListener implements Listener
 		}
 
 		QuestsAPI questsAPI = HycraftQuestsAddons.getQuestsAPI();
-		PlayerAccount acc = questsAPI.getPlugin().getPlayersManager().getAccount(player);
+		Quester acc = questsAPI.getPlugin().getPlayersManager().getQuester(player);
 
-		if (!(acc.getQuestDatas(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(125))).getStage() == 1)) return;
+		if (!(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(125))).getStage().getAsInt() == 1)) return;
 
 		List<Location> progress = HycraftQuestsAddons.getInstance().getPuzzleProgress().computeIfAbsent(player.getUniqueId(), k -> new ArrayList<>());
 		if (progress.size() < puzzleSequence.size() && puzzleSequence.get(progress.size()).equals(hitLocation)) {

@@ -1,33 +1,25 @@
 package fr.justop.hycraftQuestsAddons.stages;
 
-import fr.justop.hycraftQuestsAddons.objects.BQLocation;
 import fr.skytasul.quests.api.comparison.ItemComparisonMap;
-import fr.skytasul.quests.api.editors.WaitBlockClick;
 import fr.skytasul.quests.api.gui.ItemUtils;
 import fr.skytasul.quests.api.localization.Lang;
-import fr.skytasul.quests.api.stages.AbstractStage;
 import fr.skytasul.quests.api.stages.StageController;
 import fr.skytasul.quests.api.stages.StageDescriptionPlaceholdersContext;
-import fr.skytasul.quests.api.stages.creation.StageCreation;
 import fr.skytasul.quests.api.stages.creation.StageCreationContext;
-import fr.skytasul.quests.api.stages.creation.StageGuiLine;
 import fr.skytasul.quests.api.stages.types.AbstractItemStage;
-import fr.skytasul.quests.api.stages.types.Locatable;
 import fr.skytasul.quests.api.utils.CountableObject;
-import fr.skytasul.quests.api.utils.XMaterial;
-import net.momirealms.customfishing.api.event.FishingResultEvent;
+import com.cryptomorin.xseries.XMaterial;
+import net.momirealms.customfishing.api.event.FishingLootSpawnEvent;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.Objects;
 
 public class CustomFishingStage extends AbstractItemStage implements Listener {
 
@@ -39,12 +31,13 @@ public class CustomFishingStage extends AbstractItemStage implements Listener {
         super(controller, section);
     }
 
-    @EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onFish(FishingResultEvent e){
-        if (e.getLoot() instanceof Item item){
-            Player p = e.getPlayer();
-            if (item.isDead())
-                return;
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onFish(FishingLootSpawnEvent e) {
+        Player p = e.getPlayer();
+
+        if (e.getLoot() instanceof Item item) {
+            if (item.isDead() || !item.isValid()) return;
+
             ItemStack fish = item.getItemStack();
             event(p, fish, fish.getAmount());
         }
@@ -76,7 +69,5 @@ public class CustomFishingStage extends AbstractItemStage implements Listener {
         protected CustomFishingStage finishStage(StageController controller, List<CountableObject<ItemStack>> items, ItemComparisonMap comparisons) {
             return new CustomFishingStage(controller, items, comparisons);
         }
-
     }
-
 }

@@ -1,5 +1,6 @@
 package fr.justop.hycraftQuestsAddons;
 
+import com.cryptomorin.xseries.XMaterial;
 import fr.justop.hycraftQuestsAddons.commands.ConsoleCommand;
 import fr.justop.hycraftQuestsAddons.commands.PlayerCommand;
 import fr.justop.hycraftQuestsAddons.listeners.*;
@@ -8,10 +9,8 @@ import fr.justop.hycraftQuestsAddons.stages.CustomFishingStage;
 import fr.justop.hycraftQuestsAddons.stages.StageItemFrameClick;
 import fr.justop.hycraftQuestsAddons.objects.CuboidRegion;
 import fr.skytasul.quests.api.QuestsAPI;
-import fr.skytasul.quests.api.events.PlayerSetStageEvent;
 import fr.skytasul.quests.api.stages.StageType;
 import fr.skytasul.quests.api.stages.StageTypeRegistry;
-import fr.skytasul.quests.api.utils.XMaterial;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import io.lumine.mythic.core.mobs.ActiveMob;
 import net.luckperms.api.LuckPerms;

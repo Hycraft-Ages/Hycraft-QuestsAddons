@@ -2,9 +2,8 @@ package fr.justop.hycraftQuestsAddons.placeholders;
 
 import fr.skytasul.quests.api.QuestsAPI;
 import fr.skytasul.quests.api.options.description.DescriptionSource;
-import fr.skytasul.quests.api.players.PlayerAccount;
-import fr.skytasul.quests.api.players.PlayerQuestDatas;
-import fr.skytasul.quests.api.players.PlayersManager;
+import fr.skytasul.quests.api.questers.Quester;
+import fr.skytasul.quests.api.questers.data.QuesterQuestData;
 import fr.skytasul.quests.api.quests.Quest;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
@@ -65,7 +64,7 @@ public class HycraftQuestsPlaceholder extends PlaceholderExpansion {
     }
 
     private String getQuestStep(Player player, int questID) {
-        PlayerAccount acc = questsAPI.getPlugin().getPlayersManager().getAccount(player);
+        Quester acc = questsAPI.getPlugin().getPlayersManager().getQuester(player);
 
         if (acc == null) {
             return "§7Statut: Ꙧ";
@@ -77,17 +76,17 @@ public class HycraftQuestsPlaceholder extends PlaceholderExpansion {
             return "§cErreur (contactez un membre du staff).";
         }
 
-        PlayerQuestDatas questData = acc.getQuestDatas(quest);
+        QuesterQuestData questData = acc.getDataHolder().getQuestData(quest);
 
         if (questData == null || !questData.hasStarted()) {
             return "§7Statut: §fꙦ";
         }
 
-        if (questData.isFinished()) {
+        if (questData.hasFinishedOnce()) {
             return "§7Statut: §fꙥ";
         }
 
-        int stage = questData.getStage();
+        int stage = questData.getStage().getAsInt();
 
         if (quest.getBranchesManager().getPlayerBranch(acc) != null) {
             String desc = quest.getBranchesManager()

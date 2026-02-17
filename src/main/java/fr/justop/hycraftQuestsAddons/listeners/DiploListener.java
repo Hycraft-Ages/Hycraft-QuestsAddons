@@ -3,7 +3,7 @@ package fr.justop.hycraftQuestsAddons.listeners;
 import fr.justop.hycraftQuestsAddons.HycraftQuestsAddons;
 import fr.justop.hycraftQuestsAddons.objects.CuboidRegion;
 import fr.skytasul.quests.api.QuestsAPI;
-import fr.skytasul.quests.api.players.PlayerAccount;
+import fr.skytasul.quests.api.questers.Quester;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -24,7 +24,7 @@ public class DiploListener implements Listener
 	public void onPlayerMove(PlayerMoveEvent event) {
 		Player player = event.getPlayer();
 		QuestsAPI questsAPI = HycraftQuestsAddons.getQuestsAPI();
-		PlayerAccount acc = questsAPI.getPlugin().getPlayersManager().getAccount(player);
+		Quester acc = questsAPI.getPlugin().getPlayersManager().getQuester(player);
 
 		CuboidRegion diploRegion = HycraftQuestsAddons.getInstance().getRegions().get("DiploOpenRegion");
 		if (diploRegion != null && diploRegion.isInside(event.getTo())) {
@@ -36,7 +36,7 @@ public class DiploListener implements Listener
 		}
 
 		if(!HycraftQuestsAddons.getInstance().getPhase2().containsKey(player.getUniqueId())) return;
-		if(!HycraftQuestsAddons.getInstance().getPhase2().get(player.getUniqueId()).equals("active") || !(acc.getQuestDatas(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(115))).getStage() == 4)) return;
+		if(!HycraftQuestsAddons.getInstance().getPhase2().get(player.getUniqueId()).equals("active") || !(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(115))).getStage().getAsInt() == 4)) return;
 
 		if (player.getVelocity().getY() > 0) {
 			return;
@@ -90,20 +90,20 @@ public class DiploListener implements Listener
 			@Override
 			public void run() {
 				QuestsAPI questsAPI = HycraftQuestsAddons.getQuestsAPI();
-				PlayerAccount acc = questsAPI.getPlugin().getPlayersManager().getAccount(event.getPlayer());
+				Quester acc = questsAPI.getPlugin().getPlayersManager().getQuester(event.getPlayer());
 
 				if (acc == null) {
 					event.getPlayer().sendMessage("§cEnvoie un mp à JustOp (code d'erreur 112)");
 					return;
 				}
 
-				if(2 == acc.getQuestDatas(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(115))).getStage() || 3 == acc.getQuestDatas(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(115))).getStage())
+				if(2 == acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(115))).getStage().getAsInt() || 3 == acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(115))).getStage().getAsInt())
 				{
 					HycraftQuestsAddons.getInstance().getPhase1().put(event.getPlayer().getUniqueId(), "inactive");
 					event.getPlayer().sendMessage(HycraftQuestsAddons.PREFIX + "§eVous avez une quête en cours! Exécutez §b/q rejoin §epour rejoindre la zone de quête.");
 				}
 
-				if(4 == acc.getQuestDatas(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(115))).getStage())
+				if(4 == acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(115))).getStage().getAsInt())
 				{
 					event.getPlayer().sendMessage(HycraftQuestsAddons.PREFIX + "§eVous avez une quête en cours! Exécutez §b/q rejoin §epour rejoindre la zone de quête.");
 				}

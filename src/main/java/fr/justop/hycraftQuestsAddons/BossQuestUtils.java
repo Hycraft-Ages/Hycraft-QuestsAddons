@@ -2,7 +2,7 @@ package fr.justop.hycraftQuestsAddons;
 
 import fr.justop.hycraftQuestsAddons.listeners.ArrowListener;
 import fr.skytasul.quests.api.QuestsAPI;
-import fr.skytasul.quests.api.players.PlayerAccount;
+import fr.skytasul.quests.api.questers.Quester;
 import io.lumine.mythic.api.mobs.MythicMob;
 import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
 import io.lumine.mythic.bukkit.BukkitAdapter;
@@ -14,13 +14,9 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarStyle;
-import org.bukkit.boss.BossBar;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -56,7 +52,7 @@ public class BossQuestUtils {
 					player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 1.0f, 1.0f);
 					countdown--;
 				} else {
-					MythicMob mob = MythicBukkit.inst().getMobManager().getMythicMob("Mutant_Flower").orElse(null);
+					MythicMob mob = MythicBukkit.inst().getMobManager().getMythicMob("Boss_prehistoire").orElse(null);
 					if (mob != null) {
 						ActiveMob activeMob = mob.spawn(BukkitAdapter.adapt(bossSpawn), 1);
 						arenaLocation.setWorld(Bukkit.getWorld("Challenge"));
@@ -264,8 +260,8 @@ public class BossQuestUtils {
 
 		player.getInventory().setArmorContents(new ItemStack[]{ironBoots, ironLeggings, ironChestplate, ironHelmet});
 
-		Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"n give " + player.getName() +" epee_chronite_t3");
-		Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"n give " + player.getName() +" arc_chronite_t3");
+		Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"n give epee_chronite_t3 " + player.getName());
+		Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"n give arc_chronite_t3 " + player.getName());
 
 		ItemStack goldenApples = new ItemStack(Material.GOLDEN_APPLE, 15);
 
@@ -330,9 +326,9 @@ public class BossQuestUtils {
 		HycraftQuestsAddons.getInstance().getBossPlayers().remove(player.getUniqueId());
 
 		QuestsAPI questsAPI = HycraftQuestsAddons.getQuestsAPI();
-		PlayerAccount acc = questsAPI.getPlugin().getPlayersManager().getAccount(player);
+		Quester acc = questsAPI.getPlugin().getPlayersManager().getQuester(player);
 
-		acc.getQuestDatas(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(125))).setStage(7);
+		acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(125))).setStage(OptionalInt.of(7));
 		player.sendMessage(HycraftQuestsAddons.PREFIX + "§cTu as échoué! Tâche d'être en meilleure forme au prochain essai!");
 		player.sendMessage(HycraftQuestsAddons.PREFIX + "§eAfin de réessayer le boss, exécute §b/q retry §eà tout moment.");
 		player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 1.0f);

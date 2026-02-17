@@ -1,21 +1,21 @@
-C:\Users\drieh\Downloads\Hycraft-QuestsAddons-master\Hycraft-QuestsAddons-master\src\main\java\fr\justop\hycraftQuestsAddons\BossQuestUtils.java
-C:\Users\drieh\Downloads\Hycraft-QuestsAddons-master\Hycraft-QuestsAddons-master\src\main\java\fr\justop\hycraftQuestsAddons\commands\ConsoleCommand.java
-C:\Users\drieh\Downloads\Hycraft-QuestsAddons-master\Hycraft-QuestsAddons-master\src\main\java\fr\justop\hycraftQuestsAddons\commands\PlayerCommand.java
-C:\Users\drieh\Downloads\Hycraft-QuestsAddons-master\Hycraft-QuestsAddons-master\src\main\java\fr\justop\hycraftQuestsAddons\DBManager.java
-C:\Users\drieh\Downloads\Hycraft-QuestsAddons-master\Hycraft-QuestsAddons-master\src\main\java\fr\justop\hycraftQuestsAddons\HycraftQuestsAddons.java
-C:\Users\drieh\Downloads\Hycraft-QuestsAddons-master\Hycraft-QuestsAddons-master\src\main\java\fr\justop\hycraftQuestsAddons\ItemSerializer.java
-C:\Users\drieh\Downloads\Hycraft-QuestsAddons-master\Hycraft-QuestsAddons-master\src\main\java\fr\justop\hycraftQuestsAddons\listeners\ArenaListener.java
-C:\Users\drieh\Downloads\Hycraft-QuestsAddons-master\Hycraft-QuestsAddons-master\src\main\java\fr\justop\hycraftQuestsAddons\listeners\ArrowListener.java
-C:\Users\drieh\Downloads\Hycraft-QuestsAddons-master\Hycraft-QuestsAddons-master\src\main\java\fr\justop\hycraftQuestsAddons\listeners\ComposterLaunch.java
-C:\Users\drieh\Downloads\Hycraft-QuestsAddons-master\Hycraft-QuestsAddons-master\src\main\java\fr\justop\hycraftQuestsAddons\listeners\DiploListener.java
-C:\Users\drieh\Downloads\Hycraft-QuestsAddons-master\Hycraft-QuestsAddons-master\src\main\java\fr\justop\hycraftQuestsAddons\listeners\DropperListener.java
-C:\Users\drieh\Downloads\Hycraft-QuestsAddons-master\Hycraft-QuestsAddons-master\src\main\java\fr\justop\hycraftQuestsAddons\listeners\FireListener.java
-C:\Users\drieh\Downloads\Hycraft-QuestsAddons-master\Hycraft-QuestsAddons-master\src\main\java\fr\justop\hycraftQuestsAddons\listeners\FishingListener.java
-C:\Users\drieh\Downloads\Hycraft-QuestsAddons-master\Hycraft-QuestsAddons-master\src\main\java\fr\justop\hycraftQuestsAddons\listeners\GeneralListener.java
-C:\Users\drieh\Downloads\Hycraft-QuestsAddons-master\Hycraft-QuestsAddons-master\src\main\java\fr\justop\hycraftQuestsAddons\listeners\GoatsListener.java
-C:\Users\drieh\Downloads\Hycraft-QuestsAddons-master\Hycraft-QuestsAddons-master\src\main\java\fr\justop\hycraftQuestsAddons\objects\BQLocation.java
-C:\Users\drieh\Downloads\Hycraft-QuestsAddons-master\Hycraft-QuestsAddons-master\src\main\java\fr\justop\hycraftQuestsAddons\objects\ComposterLaunchTask.java
-C:\Users\drieh\Downloads\Hycraft-QuestsAddons-master\Hycraft-QuestsAddons-master\src\main\java\fr\justop\hycraftQuestsAddons\objects\CuboidRegion.java
-C:\Users\drieh\Downloads\Hycraft-QuestsAddons-master\Hycraft-QuestsAddons-master\src\main\java\fr\justop\hycraftQuestsAddons\placeholders\HycraftQuestsPlaceholder.java
-C:\Users\drieh\Downloads\Hycraft-QuestsAddons-master\Hycraft-QuestsAddons-master\src\main\java\fr\justop\hycraftQuestsAddons\stages\CustomFishingStage.java
-C:\Users\drieh\Downloads\Hycraft-QuestsAddons-master\Hycraft-QuestsAddons-master\src\main\java\fr\justop\hycraftQuestsAddons\stages\StageItemFrameClick.java
+C:\Users\lilli\OneDrive\Desktop\Dossier julien\Hycraft-QuestsAddons\src\main\java\fr\justop\hycraftQuestsAddons\BossQuestUtils.java
+C:\Users\lilli\OneDrive\Desktop\Dossier julien\Hycraft-QuestsAddons\src\main\java\fr\justop\hycraftQuestsAddons\commands\ConsoleCommand.java
+C:\Users\lilli\OneDrive\Desktop\Dossier julien\Hycraft-QuestsAddons\src\main\java\fr\justop\hycraftQuestsAddons\commands\PlayerCommand.java
+C:\Users\lilli\OneDrive\Desktop\Dossier julien\Hycraft-QuestsAddons\src\main\java\fr\justop\hycraftQuestsAddons\DBManager.java
+C:\Users\lilli\OneDrive\Desktop\Dossier julien\Hycraft-QuestsAddons\src\main\java\fr\justop\hycraftQuestsAddons\HycraftQuestsAddons.java
+C:\Users\lilli\OneDrive\Desktop\Dossier julien\Hycraft-QuestsAddons\src\main\java\fr\justop\hycraftQuestsAddons\ItemSerializer.java
+C:\Users\lilli\OneDrive\Desktop\Dossier julien\Hycraft-QuestsAddons\src\main\java\fr\justop\hycraftQuestsAddons\listeners\ArenaListener.java
+C:\Users\lilli\OneDrive\Desktop\Dossier julien\Hycraft-QuestsAddons\src\main\java\fr\justop\hycraftQuestsAddons\listeners\ArrowListener.java
+C:\Users\lilli\OneDrive\Desktop\Dossier julien\Hycraft-QuestsAddons\src\main\java\fr\justop\hycraftQuestsAddons\listeners\ComposterLaunch.java
+C:\Users\lilli\OneDrive\Desktop\Dossier julien\Hycraft-QuestsAddons\src\main\java\fr\justop\hycraftQuestsAddons\listeners\DiploListener.java
+C:\Users\lilli\OneDrive\Desktop\Dossier julien\Hycraft-QuestsAddons\src\main\java\fr\justop\hycraftQuestsAddons\listeners\DropperListener.java
+C:\Users\lilli\OneDrive\Desktop\Dossier julien\Hycraft-QuestsAddons\src\main\java\fr\justop\hycraftQuestsAddons\listeners\FireListener.java
+C:\Users\lilli\OneDrive\Desktop\Dossier julien\Hycraft-QuestsAddons\src\main\java\fr\justop\hycraftQuestsAddons\listeners\FishingListener.java
+C:\Users\lilli\OneDrive\Desktop\Dossier julien\Hycraft-QuestsAddons\src\main\java\fr\justop\hycraftQuestsAddons\listeners\GeneralListener.java
+C:\Users\lilli\OneDrive\Desktop\Dossier julien\Hycraft-QuestsAddons\src\main\java\fr\justop\hycraftQuestsAddons\listeners\GoatsListener.java
+C:\Users\lilli\OneDrive\Desktop\Dossier julien\Hycraft-QuestsAddons\src\main\java\fr\justop\hycraftQuestsAddons\objects\BQLocation.java
+C:\Users\lilli\OneDrive\Desktop\Dossier julien\Hycraft-QuestsAddons\src\main\java\fr\justop\hycraftQuestsAddons\objects\ComposterLaunchTask.java
+C:\Users\lilli\OneDrive\Desktop\Dossier julien\Hycraft-QuestsAddons\src\main\java\fr\justop\hycraftQuestsAddons\objects\CuboidRegion.java
+C:\Users\lilli\OneDrive\Desktop\Dossier julien\Hycraft-QuestsAddons\src\main\java\fr\justop\hycraftQuestsAddons\placeholders\HycraftQuestsPlaceholder.java
+C:\Users\lilli\OneDrive\Desktop\Dossier julien\Hycraft-QuestsAddons\src\main\java\fr\justop\hycraftQuestsAddons\stages\CustomFishingStage.java
+C:\Users\lilli\OneDrive\Desktop\Dossier julien\Hycraft-QuestsAddons\src\main\java\fr\justop\hycraftQuestsAddons\stages\StageItemFrameClick.java

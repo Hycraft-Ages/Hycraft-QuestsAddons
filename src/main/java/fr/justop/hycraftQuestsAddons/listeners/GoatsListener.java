@@ -2,23 +2,18 @@ package fr.justop.hycraftQuestsAddons.listeners;
 
 import fr.justop.hycraftQuestsAddons.HycraftQuestsAddons;
 import fr.skytasul.quests.api.QuestsAPI;
-import fr.skytasul.quests.api.players.PlayerAccount;
+import fr.skytasul.quests.api.questers.Quester;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.event.NPCRightClickEvent;
 import net.citizensnpcs.api.npc.NPC;
-import net.citizensnpcs.api.trait.trait.Equipment;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
-import net.luckperms.api.model.user.User;
-import net.luckperms.api.node.Node;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.momirealms.customnameplates.api.CNPlayer;
 import net.momirealms.customnameplates.api.CustomNameplatesAPI;
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -74,10 +69,10 @@ public class GoatsListener implements Listener
 		if(npc.getId() <= 93 && npc.getId() >= 84)
 		{
 			QuestsAPI questsAPI = HycraftQuestsAddons.getQuestsAPI();
-			PlayerAccount acc = questsAPI.getPlugin().getPlayersManager().getAccount(player);
+			Quester acc = questsAPI.getPlugin().getPlayersManager().getQuester(player);
 			List<Integer> playerList = HycraftQuestsAddons.getInstance().getGoatsCounter().get(player.getUniqueId());
 
-			if(acc.getQuestDatas(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(114))).getStage() == 1)
+			if(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(114))).getStage().getAsInt() == 1)
 			{
 				if(!(playerList.contains(npc.getId())))
 				{
@@ -131,7 +126,7 @@ public class GoatsListener implements Listener
 
 										if (cnPlayer != null) {
 											cnPlayer.acquireActionBar(reserveId);
-											player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(ChatColor.YELLOW + "Chèvre détectée à " + ChatColor.RED + nearest.distance(playerLocation) + ChatColor.YELLOW + " blocks"));
+											player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(ChatColor.YELLOW + "Chèvre détectée à " + ChatColor.RED + Math.round(nearest.distance(playerLocation) * 10.0) / 10.0 + ChatColor.YELLOW + " blocks"));
 										}
 									}
 								});

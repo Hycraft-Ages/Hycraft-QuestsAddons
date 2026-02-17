@@ -2,10 +2,7 @@ package fr.justop.hycraftQuestsAddons.listeners;
 
 import com.sk89q.worldedit.bukkit.BukkitWorld;
 import com.sk89q.worldedit.math.BlockVector3;
-import com.sk89q.worldedit.world.World;
 import com.sk89q.worldguard.WorldGuard;
-import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
-import com.sk89q.worldguard.internal.platform.WorldGuardPlatform;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
@@ -13,9 +10,7 @@ import com.sk89q.worldguard.protection.regions.RegionContainer;
 import fr.justop.hycraftQuestsAddons.HycraftQuestsAddons;
 import fr.justop.hycraftQuestsAddons.objects.CuboidRegion;
 import fr.skytasul.quests.api.QuestsAPI;
-import fr.skytasul.quests.api.players.PlayerAccount;
-import io.lumine.mythic.bukkit.BukkitAdapter;
-import io.lumine.mythic.bukkit.utils.lib.jooq.Meta;
+import fr.skytasul.quests.api.questers.Quester;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -47,9 +42,9 @@ public class FireListener implements Listener {
 		if(event.getAction() == Action.RIGHT_CLICK_BLOCK)
 		{
 			QuestsAPI questsAPI = HycraftQuestsAddons.getQuestsAPI();
-			PlayerAccount acc = questsAPI.getPlugin().getPlayersManager().getAccount(player);
+			Quester acc = questsAPI.getPlugin().getPlayersManager().getQuester(player);
 
-			if (!(acc.getQuestDatas(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(126))).getStage() == 1)) return;
+			if (!(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(126))).getStage().getAsInt() == 1)) return;
 
 			Block block = event.getClickedBlock();
 			if(!(block.getType() == Material.NOTE_BLOCK)) return;
@@ -85,27 +80,27 @@ public class FireListener implements Listener {
 		if (isPlayerTouchingFire(event.getTo())) {
 			if (isPlayerInRegion(player, "fire_region")) {
 				QuestsAPI questsAPI = HycraftQuestsAddons.getQuestsAPI();
-				PlayerAccount acc = questsAPI.getPlugin().getPlayersManager().getAccount(player);
+				Quester acc = questsAPI.getPlugin().getPlayersManager().getQuester(player);
 
-				if (acc.getQuestDatas(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(129))).getStage() == 1
-					|| acc.getQuestDatas(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(129))).getStage() == 2)
+				if (acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(129))).getStage().getAsInt() == 1
+					|| acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(129))).getStage().getAsInt() == 2)
 				{
 					Location teleportLocation = new Location(player.getWorld(), 384.5, 2, -75.5, 90f, 0f);
 					player.teleport(teleportLocation);
 				}
 
-				else if (acc.getQuestDatas(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(129))).getStage() == 4
-						|| acc.getQuestDatas(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(129))).getStage() == 5
-						|| acc.getQuestDatas(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(129))).getStage() == 6)
+				else if (acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(129))).getStage().getAsInt() == 4
+						|| acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(129))).getStage().getAsInt() == 5
+						|| acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(129))).getStage().getAsInt() == 6)
 
 				{
 					Location teleportLocation = new Location(player.getWorld(), 393.5, 9, -105.5, 90f, 0f);
 					player.teleport(teleportLocation);
 				}
 
-				else if (acc.getQuestDatas(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(129))).getStage() == 8
-						|| acc.getQuestDatas(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(129))).getStage() == 9
-						|| acc.getQuestDatas(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(129))).getStage() == 10)
+                else if (acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(129))).getStage().getAsInt() == 8
+                        || acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(129))).getStage().getAsInt() == 9
+                        || acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(129))).getStage().getAsInt() == 10)
 				{
 					Location teleportLocation = new Location(player.getWorld(), 248.5, -18, -131.5, -90f, 0f);
 					player.teleport(teleportLocation);
