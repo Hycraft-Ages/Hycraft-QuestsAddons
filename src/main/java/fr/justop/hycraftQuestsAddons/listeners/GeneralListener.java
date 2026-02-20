@@ -24,22 +24,9 @@ public class GeneralListener implements Listener {
             Quester acc = questsAPI.getPlugin().getPlayersManager().getQuester(player);
             if(horse.getCustomName() == null) return;
             if (201.0 < player.getLocation().getX() && player.getLocation().getX() < 209.1 && player.getLocation().getZ() < -352.0 && player.getLocation().getZ() > -361.0) return;
-            if(!(horse.getCustomName().equalsIgnoreCase("Nicolas")) || !(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(132))).getStage().getAsInt() == 1)) return;
+            if(!(horse.getCustomName().equalsIgnoreCase("Nicolas")) || !(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(132))).getStage().orElse(-1) == 1)) return;
             player.sendMessage(HycraftQuestsAddons.PREFIX + "\u00a7cTu ne peux pas descendre de ton cheval pendant la course !");
             event.setCancelled(true);
-        }
-    }
-    @EventHandler
-    public void onPlayerDrop(PlayerDropItemEvent event)
-    {
-        Player player = event.getPlayer();
-        QuestsAPI questsAPI = HycraftQuestsAddons.getQuestsAPI();
-        Quester acc = questsAPI.getPlugin().getPlayersManager().getQuester(player);
-
-        if(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(132))).getStage().getAsInt() == 1)
-        {
-            event.setCancelled(true);
-            player.sendMessage(HycraftQuestsAddons.PREFIX + "§cTu ne peux pas lâcher d'item durant la course!");
         }
     }
 
@@ -54,7 +41,7 @@ public class GeneralListener implements Listener {
             public void run() {
                 QuestsAPI questsAPI = HycraftQuestsAddons.getQuestsAPI();
                 Quester acc = questsAPI.getPlugin().getPlayersManager().getQuester(player);
-                if(!(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(132))).getStage().getAsInt() == 1)) return;
+                if(!(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(132))).getStage().orElse(-1) == 1)) return;
 
                 acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(132))).setStage(OptionalInt.of(0));
             }

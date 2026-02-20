@@ -14,86 +14,104 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BossBar;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.util.*;
 
 public class BossQuestUtils {
 
-	public static void startBossFight(Player player) {
-		Location arenaLocation = getAvailableArena(1);
-		if (arenaLocation == null) {
-			player.sendMessage("\u00a7cAucune arène disponible.");
-			return;
-		}
+    public static void startBossFight(Player player) throws IOException {
+        int arenaIndex = getAvailableIndex(1);
 
-		Location bossSpawn = arenaLocation.clone();
-		Location playerSpawn = bossSpawn.clone().add(0, 0, 9);
-		playerSpawn.setYaw(180f);
-		HycraftQuestsAddons.saveInventory(player);
-		giveBossKit(player);
-		player.setHealth(20.0);
-		player.teleport(playerSpawn);
-		player.removePotionEffect(PotionEffectType.CONFUSION);
-		new BukkitRunnable() {
-			int countdown = 5;
+        if (arenaIndex == -1) {
+            player.sendMessage("§cAucune arène disponible.");
+            return;
+        }
 
-			@Override
-			public void run() {
-				if (countdown > 0) {
-					player.sendMessage(HycraftQuestsAddons.PREFIX + "§aDébut dans §e" + countdown + "§a secondes...");
-					player.sendTitle("§e§l" + countdown, null);
-					player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 1.0f, 1.0f);
-					countdown--;
-				} else {
-					MythicMob mob = MythicBukkit.inst().getMobManager().getMythicMob("Boss_prehistoire").orElse(null);
-					if (mob != null) {
-						ActiveMob activeMob = mob.spawn(BukkitAdapter.adapt(bossSpawn), 1);
-						arenaLocation.setWorld(Bukkit.getWorld("Challenge"));
-						HycraftQuestsAddons.getInstance().getBossPlayers().put(player.getUniqueId(), HycraftQuestsAddons.getInstance().getArenaLocations().indexOf(arenaLocation));
-						HycraftQuestsAddons.getInstance().getBosses().put(player.getUniqueId(), activeMob);
-						HycraftQuestsAddons.getInstance().getBossPhase().put(player.getUniqueId(), 1);
-					}
-					startMobWaves(player, bossSpawn, 1);
-					cancel();
-				}
-			}
-		}.runTaskTimer(HycraftQuestsAddons.getInstance(), 0, 20);
-	}
+        Location baseLoc = HycraftQuestsAddons.getInstance().getArenaLocations().get(arenaIndex);
+        Location arenaLocation = baseLoc.clone();
+        arenaLocation.setWorld(Bukkit.getWorld("BossFight1"));
 
-	public static Location getAvailableArena(int mode) {
-		if (mode == 0) {
-			int max = HycraftQuestsAddons.getInstance().getActivePlayers().isEmpty() ? -1 : Collections.max(HycraftQuestsAddons.getInstance().getActivePlayers().values());
-			if (max <= 6) {
-				Location loc = HycraftQuestsAddons.getInstance().getArenaLocations().get(max + 1);
-				loc.setWorld(Bukkit.getWorld("Challenge"));
-				return loc;
-			}
-		} else if (mode == 1) {
-			int max = HycraftQuestsAddons.getInstance().getBossPlayers().isEmpty() ? -1 : Collections.max(HycraftQuestsAddons.getInstance().getBossPlayers().values());
-			if (max <= 6) {
-				Location loc = HycraftQuestsAddons.getInstance().getArenaLocations().get(max + 1);
-				loc.setWorld(Bukkit.getWorld("BossFight1"));
-				return loc;
-			}
-		} else if (mode == 2) {
-			int max = HycraftQuestsAddons.getInstance().getShieldPlayers().isEmpty() ? -1 : Collections.max(HycraftQuestsAddons.getInstance().getShieldPlayers().values());
-			if (max <= 6) {
-				Location loc = HycraftQuestsAddons.getInstance().getArenaLocations().get(max + 1);
-				Location loc2 = loc.clone().subtract(0, 100, 0);
-				loc2.setWorld(Bukkit.getWorld("araignees"));
-				return loc2;
-			}
-		}
+        Location bossSpawn = arenaLocation.clone();
+        Location playerSpawn = bossSpawn.clone().add(0, 0, 9);
+        playerSpawn.setYaw(180f);
 
-		return null;
-	}
+        HycraftQuestsAddons.saveInventory(player);
+        player.getInventory().clear();
+
+        giveBossKit(player);
+
+        player.setHealth(20.0);
+        player.teleport(playerSpawn);
+        player.removePotionEffect(PotionEffectType.CONFUSION);
+        player.setGameMode(GameMode.ADVENTURE);
+
+        new BukkitRunnable() {
+            int countdown = 5;
+
+            @Override
+            public void run() {
+                if (!player.isOnline()) {
+                    this.cancel();
+                    return;
+                }
+
+                if (countdown > 0) {
+                    player.sendMessage(HycraftQuestsAddons.PREFIX + "§aDébut dans §e" + countdown + "§a secondes...");
+                    player.sendTitle("§e§l" + countdown, null);
+                    player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 1.0f, 1.0f);
+                    countdown--;
+                } else {
+                    player.teleport(playerSpawn);
+                    MythicMob mob = MythicBukkit.inst().getMobManager().getMythicMob("Boss_prehistoire_quete").orElse(null);
+                    if (mob != null) {
+                        ActiveMob activeMob = mob.spawn(BukkitAdapter.adapt(bossSpawn), 1);
+                        UUID uuid = player.getUniqueId();
+                        HycraftQuestsAddons.getInstance().getBossPlayers().put(uuid, arenaIndex);
+                        HycraftQuestsAddons.getInstance().getBosses().put(uuid, activeMob);
+                        HycraftQuestsAddons.getInstance().getBossPhase().put(uuid, 1);
+
+                        player.sendTitle("§c§lTuméride", "§cCancer du sanctuaire", 10, 40, 10);
+                        player.sendMessage(HycraftQuestsAddons.PREFIX + "§cIl est temps pour vous d'en découdre...");
+                        player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 1.0f);
+                    }
+
+                    startMobWaves(player, bossSpawn, 1);
+                    this.cancel();
+                }
+            }
+        }.runTaskTimer(HycraftQuestsAddons.getInstance(), 0, 20);
+    }
+
+    public static int getAvailableIndex(int mode) {
+        Collection<Integer> busyIndexes;
+
+        if (mode == 0) {
+            busyIndexes = HycraftQuestsAddons.getInstance().getActivePlayers().values();
+        } else if (mode == 2) {
+            busyIndexes = HycraftQuestsAddons.getInstance().getShieldPlayers().values();
+        } else {
+            busyIndexes = HycraftQuestsAddons.getInstance().getBossPlayers().values();
+        }
+
+        for (int i = 0; i <= 6; i++) {
+            if (!busyIndexes.contains(i)) {
+                return i;
+            }
+        }
+        return -1;
+    }
 
 	public static void startMobWaves(Player player, Location arenaLocation, int mode) {
 		List<Location> mobSpawns = Arrays.asList(
@@ -104,18 +122,18 @@ public class BossQuestUtils {
 		);
 		if(mode == 2){
 			mobSpawns = Arrays.asList(
-					arenaLocation.clone().add(-12, -99, 11),
-					arenaLocation.clone().add(-2, -99, 14),
-					arenaLocation.clone().add(12, -98, 14),
-					arenaLocation.clone().add(16, -95, -6),
-					arenaLocation.clone().add(11, -95, -21),
-					arenaLocation.clone().add(-5, -99, -18)
+					arenaLocation.clone().add(-12, 1, 11),
+					arenaLocation.clone().add(-2, 1, 14),
+					arenaLocation.clone().add(12, 2, 14),
+					arenaLocation.clone().add(16, 5, -6),
+					arenaLocation.clone().add(11, 5, -21),
+					arenaLocation.clone().add(-5, 1, -18)
 			);
 		}
 
 
 		BukkitRunnable waves = getWaves(player, mobSpawns, mode);
-		int period = (mode == 0 || mode == 2) ? 20 * 20 : 60 * 20;
+		int period = (mode == 0 || mode == 2) ? 20 * 20 : 30 * 20;
 		HycraftQuestsAddons.getInstance().getActiveTasks().put(player.getUniqueId(), waves);
 		waves.runTaskTimer(HycraftQuestsAddons.getInstance(), 0, period);
 	}
@@ -139,12 +157,10 @@ public class BossQuestUtils {
 					return;
 				}
 
-				if (HycraftQuestsAddons.getInstance().getFrozenBosses().contains(HycraftQuestsAddons.getInstance().getBosses().get(player.getUniqueId())))
-					return;
+				if (HycraftQuestsAddons.getInstance().getFrozenBosses().contains(player.getUniqueId()))return;
 
 				if(mode == 1){
 					int phase = HycraftQuestsAddons.getInstance().getBossPhase().get(player.getUniqueId());
-
 					switch (phase){
 						case 1:
 							for (Location loc : mobSpawns) {
@@ -235,7 +251,8 @@ public class BossQuestUtils {
 
 				player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 1.0f, 1.0f);
 				String msg = mode == 0 ? "§aLa vague §e" + (wave + 1) + "§a est apparue. §e(+4)" : "§aLe boss a fait apparaître des renforts!";
-				int amount = (wave == 0 || wave == 1) ? 12 : 18;
+                updateBossBar(player, mode);
+				int amount = (wave == 0 || wave == 1) ? 6 : 12;
 				if (mode == 2){
 					msg = "§aLa vague §e" + (wave + 1) + "§a est apparue. §e(+" + amount + ")";
 				}
@@ -253,48 +270,108 @@ public class BossQuestUtils {
 		ItemStack ironLeggings = new ItemStack(Material.NETHERITE_LEGGINGS);
 		ItemStack ironBoots = new ItemStack(Material.NETHERITE_BOOTS);
 
-		ironHelmet.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 3);
-		ironChestplate.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 3);
-		ironLeggings.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 3);
-		ironBoots.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 3);
+		ironHelmet.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 1);
+		ironChestplate.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 1);
+		ironLeggings.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 1);
+		ironBoots.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 1);
 
 		player.getInventory().setArmorContents(new ItemStack[]{ironBoots, ironLeggings, ironChestplate, ironHelmet});
 
-		Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"n give epee_chronite_t3 " + player.getName());
-		Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"n give arc_chronite_t3 " + player.getName());
+		Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"n give epee_chronite_t3 1 " + player.getName());
+		Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"n give arc_chronite_t3 1 " + player.getName());
 
 		ItemStack goldenApples = new ItemStack(Material.GOLDEN_APPLE, 15);
 
 		player.getInventory().setItem(8, goldenApples);
 		player.getInventory().setItem(9, new ItemStack(Material.ARROW));
+
+        Bukkit.getScheduler().runTaskLater(HycraftQuestsAddons.getInstance(), () -> {
+            for (ItemStack item : player.getInventory().getContents()) {
+                if (item == null || item.getType() == Material.AIR) continue;
+
+                ItemMeta meta = item.getItemMeta();
+                if (meta == null) continue;
+
+                meta.getPersistentDataContainer().set(
+                        HycraftQuestsAddons.getInstance().getKIT_ITEM_KEY(),
+                        PersistentDataType.BYTE, (byte) 1
+                );
+                item.setItemMeta(meta);
+            }
+        }, 2L);
 	}
 
-	public static void freezeBoss(ActiveMob boss, int duration) {
-		if (boss instanceof LivingEntity livingEntity) {
-			((LivingEntity) boss).setAI(false);
+	public static void freezeBoss(Player player, ActiveMob activeMob, int durationSeconds) {
+        if (activeMob == null || activeMob.isDead()) return;
 
-			livingEntity.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, duration, 255));
-			livingEntity.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, duration, 255));
-			HycraftQuestsAddons.getInstance().getFrozenBosses().add(boss);
+        LivingEntity entity = (LivingEntity) BukkitAdapter.adapt(activeMob.getEntity());
+        activeMob.setGlobalCooldown(durationSeconds * 20);
 
-			Bukkit.getScheduler().runTaskLater(HycraftQuestsAddons.getInstance(), () -> {
-				((LivingEntity) boss).setAI(true);
-				livingEntity.removePotionEffect(PotionEffectType.SLOW);
-				livingEntity.removePotionEffect(PotionEffectType.WEAKNESS);
-				HycraftQuestsAddons.getInstance().getFrozenBosses().remove(boss);
-			}, duration);
-		}
+        boolean wasAiEnabled = entity.hasAI();
+        entity.setAI(false);
+        entity.addScoreboardTag("is_stunned");
+
+        new BukkitRunnable() {
+            int ticks = 0;
+            final int maxTicks = durationSeconds * 20;
+
+            @Override
+            public void run() {
+
+                if (activeMob.isDead() || !entity.isValid()) {
+                    this.cancel();
+                    return;
+                }
+
+                if (ticks >= maxTicks) {
+                    HycraftQuestsAddons.getInstance().getFrozenBosses().remove(player.getUniqueId());
+                    entity.setAI(wasAiEnabled);
+                    entity.removeScoreboardTag("is_stunned");
+                    entity.getWorld().playSound(entity.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1f, 2f);
+                    this.cancel();
+                    return;
+                }
+
+
+                double angle = ticks * 0.5;
+                double x = Math.cos(angle);
+                double z = Math.sin(angle);
+
+                entity.getWorld().spawnParticle(Particle.CRIT, entity.getLocation().add(0, 2.5, 0).add(x, 0, z), 1, 0, 0, 0, 0);
+                entity.getWorld().spawnParticle(Particle.CRIT, entity.getLocation().add(0, 2.5, 0).add(-x, 0, -z), 1, 0, 0, 0, 0);
+
+                if (ticks % 20 == 0) {
+                    entity.getWorld().playSound(entity.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 0.5f, 2.0f);
+                }
+
+                ticks += 5;
+            }
+        }.runTaskTimer(HycraftQuestsAddons.getInstance(), 0, 5);
 	}
 
 	public static void invokeSpirit(Player player) {
 		Location arenaLocation = HycraftQuestsAddons.getInstance().getArenaLocations().get(HycraftQuestsAddons.getInstance().getBossPlayers().get(player.getUniqueId()));
 		arenaLocation.setWorld(Bukkit.getWorld("BossFight1"));
 
-		Location cristalLocation = ArrowListener.getRandomCristal(arenaLocation);
-		HycraftQuestsAddons.getInstance().getActiveCristalPos().put(player.getUniqueId(), cristalLocation);
+        switch(HycraftQuestsAddons.getInstance().getBossPhase().get(player.getUniqueId())){
+            case 2:
+                List<Location> cristalLocations = ArrowListener.getRandomCristals(arenaLocation, 1);
+                HycraftQuestsAddons.getInstance().getActiveCristalPos().put(player.getUniqueId(), cristalLocations);
 
-		cristalLocation.getBlock().setType(Material.SHROOMLIGHT);
-		startParticleTask(player, cristalLocation);
+                cristalLocations.get(0).getBlock().setType(Material.SHROOMLIGHT);
+                startParticleTask(player, cristalLocations.get(0));
+                break;
+            case 3:
+                List<Location> cristalLocations2 = ArrowListener.getRandomCristals(arenaLocation, 3);
+                HycraftQuestsAddons.getInstance().getActiveCristalPos().put(player.getUniqueId(), cristalLocations2);
+
+                for (Location loc : cristalLocations2){
+                    loc.getBlock().setType(Material.SHROOMLIGHT);
+                    startParticleTask(player, loc);
+                }
+        }
+
+
 	}
 
 	public static void cancelBossChallenge(Player player)
@@ -303,15 +380,16 @@ public class BossQuestUtils {
 		HycraftQuestsAddons.getInstance().getBossPhase().remove(player.getUniqueId());
 
 		if (HycraftQuestsAddons.getInstance().getActiveCristalPos().containsKey(player.getUniqueId())) {
-			Location loc = HycraftQuestsAddons.getInstance().getActiveCristalPos().get(player.getUniqueId());
-			loc.getBlock().setType(Material.ANDESITE);
+            for (Location loc : HycraftQuestsAddons.getInstance().getActiveCristalPos().get(player.getUniqueId())){
+                loc.getBlock().setType(Material.ANDESITE);
+            }
 			HycraftQuestsAddons.getInstance().getActiveCristalPos().remove(player.getUniqueId());
 		}
 
 		ActiveMob boss = HycraftQuestsAddons.getInstance().getBosses().get(player.getUniqueId());
 		boss.remove();
 		HycraftQuestsAddons.getInstance().getBosses().remove(player.getUniqueId());
-		HycraftQuestsAddons.getInstance().getFrozenBosses().remove(boss);
+		HycraftQuestsAddons.getInstance().getFrozenBosses().remove(player.getUniqueId());
 
 		HycraftQuestsAddons.getInstance().restoreInventory(player);
 		HycraftQuestsAddons.removeNearbyEntities(player);
@@ -361,6 +439,25 @@ public class BossQuestUtils {
 		player.sendMessage(HycraftQuestsAddons.PREFIX + "§aAllez voir Donovan, en incompréhension face aux évènements");
 		player.playSound(player.getLocation(), Sound.ITEM_FIRECHARGE_USE, 1.0f, 1.0f);
 	}
+
+    public static void updateBossBar(Player player, int mode) {
+        UUID playerId = player.getUniqueId();
+        BossBar bossBar = HycraftQuestsAddons.getInstance().getBossBars().get(playerId);
+        if (bossBar != null) {
+            int killed = HycraftQuestsAddons.getInstance().getMobsKilled().getOrDefault(playerId, 0);
+            int total = HycraftQuestsAddons.getInstance().getRemainingMobs().getOrDefault(playerId, 0) + killed;
+            String c = mode == 0 ? "§5" : "§b";
+            bossBar.setTitle(c + "Progression: " + killed + "/" + total);
+            if (total > 0) {
+                bossBar.setProgress(Math.max(0.01, (double) killed / total));
+            } else {
+                bossBar.setProgress(1.0);
+            }
+            BarColor color = mode == 0 ? BarColor.PURPLE : BarColor.BLUE;
+            bossBar.setColor(color);
+        }
+
+    }
 
 	public static void startParticleTask(Player player, Location loc) {
 		new BukkitRunnable() {

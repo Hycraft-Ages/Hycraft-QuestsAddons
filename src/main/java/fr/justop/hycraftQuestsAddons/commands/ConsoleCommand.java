@@ -10,6 +10,7 @@ import fr.justop.hycraftQuestsAddons.BossQuestUtils;
 import fr.justop.hycraftQuestsAddons.HycraftQuestsAddons;
 import fr.justop.hycraftQuestsAddons.listeners.FireListener;
 import fr.justop.hycraftQuestsAddons.listeners.GoatsListener;
+import fr.justop.hycraftQuestsAddons.utils.DisplayUtils;
 import fr.skytasul.quests.api.QuestsAPI;
 import fr.skytasul.quests.api.questers.Quester;
 import fr.skytasul.quests.api.quests.Quest;
@@ -35,9 +36,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.util.*;
 
 import static org.bukkit.Bukkit.getLogger;
@@ -126,14 +129,22 @@ public class ConsoleCommand implements CommandExecutor {
         {
             Player player = Bukkit.getPlayer(args[0]);
             int mode = Integer.parseInt(args[1]);
-            startArenaChallenge(player, mode);
+            try {
+                startArenaChallenge(player, mode);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             return true;
         }
         if(command.getName().equalsIgnoreCase("boss"))
         {
             Player player = Bukkit.getPlayer(args[0]);
             if (args[1].equalsIgnoreCase("1")) {
-                BossQuestUtils.startBossFight(player);
+                try {
+                    BossQuestUtils.startBossFight(player);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
             return true;
         }
@@ -174,9 +185,18 @@ public class ConsoleCommand implements CommandExecutor {
             }
 
             player.getInventory().addItem(item);
-
+            return true;
 
         }
+        if(command.getName().equalsIgnoreCase("rankuptitle"))
+        {
+            Player player = Bukkit.getPlayer(args[0]);
+            int epoque = Integer.parseInt(args[1]);
+            DisplayUtils.playRankUpgrade(player, HycraftQuestsAddons.getInstance(), epoque);
+            return true;
+
+        }
+
 
         return false;
     }
@@ -200,7 +220,7 @@ public class ConsoleCommand implements CommandExecutor {
 
     }
 
-    private void startArenaChallenge(Player player, int mode) {
+    private void startArenaChallenge(Player player, int mode) throws IOException {
         HycraftQuestsAddons.saveInventory(player);
         player.getInventory().clear();
 
@@ -227,28 +247,43 @@ public class ConsoleCommand implements CommandExecutor {
 
         player.getInventory().setArmorContents(new ItemStack[]{ironBoots, ironLeggings, ironChestplate, ironHelmet});
 
-        Location arenaLocation = mode == 0 ? BossQuestUtils.getAvailableArena(0) : BossQuestUtils.getAvailableArena(2);
-        if (arenaLocation == null) {
-            player.sendMessage("\u00a7cAucune arène disponible.");
+        ItemStack[] contents = player.getInventory().getContents();
+        for (ItemStack item : contents) {
+            if (item == null || item.getType() == Material.AIR) continue;
+
+            ItemMeta meta2 = item.getItemMeta();
+            if (meta2 == null) continue;
+            meta2.getPersistentDataContainer().set(HycraftQuestsAddons.getInstance().getKIT_ITEM_KEY(), PersistentDataType.BYTE, (byte) 1);
+
+            item.setItemMeta(meta2);
+        }
+
+        int assignedIndex = BossQuestUtils.getAvailableIndex(mode);
+        if (assignedIndex == -1) {
+            player.sendMessage("§cAucune arène disponible.");
             HycraftQuestsAddons.getInstance().restoreInventory(player);
             return;
         }
 
-        player.teleport(arenaLocation);
-        arenaLocation.setWorld(Bukkit.getWorld("BossFight1"));
-        arenaLocation.setY(100);
-        if(mode == 0){
-            HycraftQuestsAddons.getInstance().getActivePlayers().put(player.getUniqueId(), HycraftQuestsAddons.getInstance().getArenaLocations().indexOf(arenaLocation));
-            arenaLocation.setWorld(Bukkit.getWorld("Challenge"));
-        }
-        if (mode == 2){
-            HycraftQuestsAddons.getInstance().getShieldPlayers().put(player.getUniqueId(), HycraftQuestsAddons.getInstance().getArenaLocations().indexOf(arenaLocation));
-            arenaLocation.setWorld(Bukkit.getWorld("araignees"));
+        Location baseLoc = HycraftQuestsAddons.getInstance().getArenaLocations().get(assignedIndex);
+        Location arenaLocation = baseLoc.clone();
+
+        String worldName = (mode == 0) ? "Challenge" : (mode == 2 ? "araignees" : "BossFight1");
+        arenaLocation.setWorld(Bukkit.getWorld(worldName));
+        if (mode == 2) arenaLocation.subtract(0, 100, 0);
+
+        UUID uuid = player.getUniqueId();
+        if (mode == 0) {
+            HycraftQuestsAddons.getInstance().getActivePlayers().put(uuid, assignedIndex);
+        } else if (mode == 2) {
+            HycraftQuestsAddons.getInstance().getShieldPlayers().put(uuid, assignedIndex);
         }
         HycraftQuestsAddons.getInstance().getRemainingMobs().put(player.getUniqueId(), 0);
         HycraftQuestsAddons.getInstance().getMobsKilled().put(player.getUniqueId(), 0);
 
-        BarColor color = mode == 0 ? BarColor.YELLOW : BarColor.BLUE;
+        player.teleport(arenaLocation);
+
+        BarColor color = mode == 0 ? BarColor.PURPLE : BarColor.BLUE;
         BossBar bossBar = Bukkit.createBossBar("§bProgression: 0/0", color, BarStyle.SOLID);
         bossBar.addPlayer(player);
         bossBar.setVisible(true);
@@ -267,6 +302,8 @@ public class ConsoleCommand implements CommandExecutor {
                     player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 1.0f, 1.0f);
                     countdown--;
                 } else {
+                    player.teleport(arenaLocation);
+                    player.sendTitle("§c§l" + "Combattez!", null);
                     BossQuestUtils.startMobWaves(player, arenaLocation, mode);
                     cancel();
                 }

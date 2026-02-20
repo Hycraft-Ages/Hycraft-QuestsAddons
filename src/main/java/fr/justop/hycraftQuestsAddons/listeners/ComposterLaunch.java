@@ -37,7 +37,7 @@ public class ComposterLaunch implements Listener {
 			QuestsAPI questsAPI = HycraftQuestsAddons.getQuestsAPI();
 			Quester acc = questsAPI.getPlugin().getPlayersManager().getQuester(player);
 
-			if (!(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(115))).getStage().getAsInt() == 1)) return;
+			if (!(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(115))).getStage().orElse(-1) == 1)) return;
 
 			if (block.getType() == Material.COMPOSTER) {
 

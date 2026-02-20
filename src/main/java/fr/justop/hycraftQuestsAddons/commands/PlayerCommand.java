@@ -20,6 +20,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -76,55 +77,55 @@ public class PlayerCommand implements CommandExecutor, TabCompleter {
 				}
 				break;
 
-			case "info":
-				boolean hasActiveQuest = false;
+            case "info":
+                boolean hasActiveQuest = false;
 
-				for (Quest quest : questsAPI.getQuestsManager().getQuests()) {
-					QuesterQuestData questData = acc.getDataHolder().getQuestData(quest);
+                for (Quest quest : questsAPI.getQuestsManager().getQuests()) {
+                    QuesterQuestData questData = acc.getDataHolder().getQuestData(quest);
 
-					if (questData.hasStarted() && !questData.hasFinishedOnce()) {
-						hasActiveQuest = true;
+                    if (questData.hasStarted() && !questData.hasFinishedOnce()) {
+                        QuestBranch playerBranch = quest.getBranchesManager().getPlayerBranch(acc);
 
-						OptionalInt stage = questData.getStage();
-						QuestBranch playerBranch = quest.getBranchesManager().getPlayerBranch(acc);
+                        if (playerBranch != null) {
+                            OptionalInt stageIndex = questData.getStage();
 
-						if (playerBranch != null) {
-							StageController currentStage = playerBranch.getRegularStage(stage.getAsInt());
+                            if (stageIndex.isPresent()) {
+                                int index = stageIndex.getAsInt();
+                                if (index >= 0 && index < playerBranch.getRegularStages().size()) {
+                                    StageController currentStage = playerBranch.getRegularStage(index);
 
-                            String desc = currentStage.getDescriptionLine(acc, DescriptionSource.FORCELINE);
+                                    hasActiveQuest = true;
+                                    player.sendMessage("§6§l➤ Quête en cours : §e" + quest.getName());
+                                    player.sendMessage("§7-------------------------------");
 
-                            player.sendMessage("§6§l➤ Quête en cours : §e" + quest.getName());
-                            player.sendMessage("§7-------------------------------");
-
-                            if (desc != null && !desc.isEmpty()) {
-                                String[] descLines = desc.split("\n");
-                                for (String line : descLines) {
-                                    player.sendMessage("§f▪ " + line);
+                                    String desc = currentStage.getDescriptionLine(acc, DescriptionSource.FORCELINE);
+                                    if (desc != null && !desc.isEmpty()) {
+                                        for (String line : desc.split("\n")) {
+                                            player.sendMessage("§f▪ " + line);
+                                        }
+                                    } else {
+                                        player.sendMessage("§7§o(Aucune description disponible)");
+                                    }
+                                    player.sendMessage("§7-------------------------------");
                                 }
-                            } else {
-                                player.sendMessage(HycraftQuestsAddons.PREFIX + "§eCette étape n'a pas de description.");
                             }
+                        }
+                    }
+                }
 
-                            player.sendMessage("§7-------------------------------");
-                        } else {
-							player.sendMessage(HycraftQuestsAddons.PREFIX + "§cImpossible de récupérer la branche active pour la quête : §e" + quest.getName());
-						}
-					}
-				}
-
-				if (!hasActiveQuest) {
-					player.sendMessage(HycraftQuestsAddons.PREFIX + "§eVous n'avez aucune quête en cours.");
-				}
-				break;
+                if (!hasActiveQuest) {
+                    player.sendMessage(HycraftQuestsAddons.PREFIX + "§eVous n'avez aucune quête en cours.");
+                }
+                break;
 
 			case "enigme":
 
-				if(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(125))).getStage().getAsInt() == 1)
+				if(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(125))).getStage().orElse(-1) == 1)
 				{
 					player.sendMessage(HycraftQuestsAddons.PREFIX + "§aLors du temps d’angoisse, le brave guerrier brandira l’arc céleste et frappera en leur cœur les gardien du sanctuaire sacré du plus faible au plus puissant. On raconte que la taille de leur insigne déterminait leur puissance... ");
 					player.sendMessage("§aUtilisez §b/q indice §asi vous avez du mal à comprendre la signification de ces mots.");
 				}
-				if(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(104))).getStage().getAsInt() == 1)
+				else if(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(104))).getStage().orElse(-1) == 1)
 				{
 					player.sendMessage(HycraftQuestsAddons.PREFIX + "§aLà où la vie est sortie du sol, un serpent naît. Encore trop faible pour ramper, il se soumet à la gravité. Il chute alors, puis il zigzague, avant de s’écraser et de rester inerte, flasque et paisible pour l’éternité. On raconte qu’au moment même où il abandonna tout espoir, là où sa chute commença, il laissa derrière lui ce qu’il avait de plus précieux, ce que les humains admirent et convoitent. ");
 					player.sendMessage("§aUtilisez §b/q indice §asi vous avez du mal à comprendre la signification de ces mots.");
@@ -135,7 +136,7 @@ public class PlayerCommand implements CommandExecutor, TabCompleter {
 				break;
 
 			case "indice":
-				if(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(125))).getStage().getAsInt() == 1)
+				if(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(125))).getStage().orElse(-1) == 1)
 				{
 					player.sendMessage("§7-------------------------------");
 
@@ -146,7 +147,7 @@ public class PlayerCommand implements CommandExecutor, TabCompleter {
 
 					player.sendMessage("§7-------------------------------");
 				}
-				if(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(104))).getStage().getAsInt() == 1)
+				else if(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(104))).getStage().orElse(-1) == 1)
 				{
 					player.sendMessage("§7-------------------------------");
 
@@ -161,17 +162,23 @@ public class PlayerCommand implements CommandExecutor, TabCompleter {
 				break;
 
 			case "retry":
-				if(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(125))).getStage().getAsInt() == 1)
+				if(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(125))).hasStarted() && !acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(125))).hasFinishedOnce())
 				{
+                    player.sendMessage(String.valueOf(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(125))).getStage().orElse(-1)));
 					if(HycraftQuestsAddons.getInstance().getBossPlayers().containsKey(player.getUniqueId())){
 						player.sendMessage(HycraftQuestsAddons.PREFIX + "§cVous êtes déjà en combat!");
 						return true;
 					}
 
-					player.sendMessage(HycraftQuestsAddons.PREFIX + "§aVous rééssayez le combat de boss.");
-					BossQuestUtils.startBossFight(player);
+                    try {
+                        BossQuestUtils.startBossFight(player);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
 
-				}
+                }else{
+                    player.sendMessage(HycraftQuestsAddons.PREFIX + "§cVous n'avez aucun combat en suspend...");
+                }
 		}
 
 		return true;

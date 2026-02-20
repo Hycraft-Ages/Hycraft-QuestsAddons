@@ -26,6 +26,8 @@ commands:
     description: horse
   giveCompassGoats:
     description: goats
+  rankuptitle:
+    description: Ok
 
 permissions:
   hycraft.questsaddons.hasfoundgoats:

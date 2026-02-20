@@ -72,7 +72,7 @@ public class GoatsListener implements Listener
 			Quester acc = questsAPI.getPlugin().getPlayersManager().getQuester(player);
 			List<Integer> playerList = HycraftQuestsAddons.getInstance().getGoatsCounter().get(player.getUniqueId());
 
-			if(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(114))).getStage().getAsInt() == 1)
+			if(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(114))).getStage().orElse(-1) == 1)
 			{
 				if(!(playerList.contains(npc.getId())))
 				{

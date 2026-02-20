@@ -25,7 +25,7 @@ public class DropperListener implements Listener
         Quest quest = questsAPI.getQuestsManager().getQuest(102);
         if(quest == null) return;
 
-        if(!(acc.getDataHolder().getQuestData(quest).getStage().getAsInt() == 2))
+        if(!(acc.getDataHolder().getQuestData(quest).getStage().orElse(-1) >= 2) && !acc.getDataHolder().getQuestData(quest).hasFinishedOnce())
         {
             Location playerLocation = player.getLocation();
             for (Location triggerLocation : HycraftQuestsAddons.getInstance().getTriggerLocations()) {
@@ -52,7 +52,7 @@ public class DropperListener implements Listener
         if(quest == null) return;
         if(!acc.getDataHolder().hasQuestData(quest)) return;
         if(acc.getDataHolder().getQuestData(quest).hasFinishedOnce()) return;
-        if(acc.getDataHolder().getQuestData(quest).getStage().getAsInt() > 2) return;
+        if(acc.getDataHolder().getQuestData(quest).getStage().orElse(-1) > 2) return;
 
         for (String name : HycraftQuestsAddons.getInstance().getRegions().keySet()) {
             if (HycraftQuestsAddons.getInstance().getRegions().get("TeleportRegion").isInside(to)) {

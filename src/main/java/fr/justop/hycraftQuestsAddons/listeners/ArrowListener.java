@@ -11,11 +11,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
+import java.io.IOException;
 import java.util.*;
 
 public class ArrowListener implements Listener
@@ -46,39 +48,59 @@ public class ArrowListener implements Listener
 
 	@EventHandler
 	public void onArrowHit(ProjectileHitEvent event) {
-		Entity projectile = event.getEntity();
-		if (!(projectile instanceof Arrow arrow) || !(arrow.getShooter() instanceof Player player)) return;
+        Entity projectile = event.getEntity();
+        if (!(projectile instanceof Arrow arrow) || !(arrow.getShooter() instanceof Player player)) return;
 
-		if(event.getHitBlock() == null) return;
+        if (event.getHitBlock() == null) return;
+        Location hitLocation = event.getHitBlock().getLocation();
+        ItemStack mainHandItem = player.getInventory().getItemInMainHand();
+        if (!mainHandItem.hasItemMeta() || !mainHandItem.getItemMeta().hasCustomModelData()) return;
 
-		Location hitLocation = event.getHitBlock().getLocation();
-		if(arrow.getShooter() == null) return;
-		if(!(Objects.requireNonNull(((Player) arrow.getShooter()).getInventory().getItemInMainHand().getItemMeta()).hasCustomModelData())) return;
+        int customModelData = mainHandItem.getItemMeta().getCustomModelData();
+        if (!(customModelData <= 3071 && customModelData >= 3061)) return;
 
-		int customModelData = Objects.requireNonNull(((Player) arrow.getShooter()).getInventory().getItemInMainHand().getItemMeta()).getCustomModelData();
-		if(! (customModelData <= 3071 && customModelData >= 3061)) return;
+        if (HycraftQuestsAddons.getInstance().getSpiritPlayers().containsKey(player.getUniqueId())) {
+            if (HycraftQuestsAddons.getInstance().getActiveCristalPos().containsKey(player.getUniqueId())) {
 
-		if(HycraftQuestsAddons.getInstance().getSpiritPlayers().containsKey(player.getUniqueId()))
-		{
-			if (HycraftQuestsAddons.getInstance().getActiveCristalPos().containsKey(player.getUniqueId()))
-			{
-				Location loc = HycraftQuestsAddons.getInstance().getActiveCristalPos().get(player.getUniqueId());
-				if(loc.equals(hitLocation))
-				{
-					loc.getBlock().setType(Material.ANDESITE);
-					HycraftQuestsAddons.removeNearbyEntities(player);
+                List<Location> crystals = HycraftQuestsAddons.getInstance().getActiveCristalPos().get(player.getUniqueId());
+                double rayonTolerance = 0.8;
+                Location hitCrystal = null;
 
-					HycraftQuestsAddons.getInstance().getActionbarTasks().get(player.getUniqueId()).cancel();
-					HycraftQuestsAddons.getInstance().getActionbarTasks().remove(player.getUniqueId());
+                for (Location loc : crystals) {
+                    if (loc.getWorld().equals(hitLocation.getWorld()) && loc.distance(hitLocation) <= rayonTolerance) {
+                        hitCrystal = loc;
+                        break;
+                    }
+                }
+                if (hitCrystal != null) {
+                    hitCrystal.getBlock().setType(Material.ANDESITE);
+                    crystals.remove(hitCrystal);
 
-					BossQuestUtils.freezeBoss(HycraftQuestsAddons.getInstance().getBosses().get(player.getUniqueId()), 15*20);
-					HycraftQuestsAddons.getInstance().getActiveCristalPos().remove(player.getUniqueId());
-					HycraftQuestsAddons.getInstance().getSpiritPlayers().remove(player.getUniqueId());
-					player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL,1.0f, 1.8f);
-					player.sendMessage(HycraftQuestsAddons.PREFIX + "§aVous avez temporairement mis le boss hors d'état de nuire. C'est le moment de contre-attaquer!");
-				}
-			}
-		}
+                    if (crystals.isEmpty()) {
+
+                        HycraftQuestsAddons.removeNearbyEntities(player);
+
+                        if (HycraftQuestsAddons.getInstance().getActionbarTasks().containsKey(player.getUniqueId())) {
+                            HycraftQuestsAddons.getInstance().getActionbarTasks().get(player.getUniqueId()).cancel();
+                            HycraftQuestsAddons.getInstance().getActionbarTasks().remove(player.getUniqueId());
+                        }
+
+                        HycraftQuestsAddons.getInstance().getFrozenBosses().add(player.getUniqueId());
+                        BossQuestUtils.freezeBoss(player, HycraftQuestsAddons.getInstance().getBosses().get(player.getUniqueId()), 15);
+
+                        HycraftQuestsAddons.getInstance().getActiveCristalPos().remove(player.getUniqueId());
+                        HycraftQuestsAddons.getInstance().getSpiritPlayers().remove(player.getUniqueId());
+
+                        player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 1.8f);
+                        player.sendMessage(HycraftQuestsAddons.PREFIX + "§aTous les cristaux sont détruits ! Le boss est vulnérable !");
+                    } else {
+
+                        player.playSound(player.getLocation(), Sound.BLOCK_GLASS_BREAK, 1.0f, 1.2f);
+                        player.sendMessage(HycraftQuestsAddons.PREFIX + "§eCristal détruit ! Encore §6" + crystals.size() + " §eà abattre.");
+                    }
+                }
+            }
+        }
 
 		if (!puzzleSequence.contains(hitLocation)) {
 			return;
@@ -87,7 +109,7 @@ public class ArrowListener implements Listener
 		QuestsAPI questsAPI = HycraftQuestsAddons.getQuestsAPI();
 		Quester acc = questsAPI.getPlugin().getPlayersManager().getQuester(player);
 
-		if (!(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(125))).getStage().getAsInt() == 1)) return;
+		if (!(acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(125))).getStage().orElse(-1) == 1)) return;
 
 		List<Location> progress = HycraftQuestsAddons.getInstance().getPuzzleProgress().computeIfAbsent(player.getUniqueId(), k -> new ArrayList<>());
 		if (progress.size() < puzzleSequence.size() && puzzleSequence.get(progress.size()).equals(hitLocation)) {
@@ -139,8 +161,12 @@ public class ArrowListener implements Listener
 					{
 						@Override
 						public void run() {
-							BossQuestUtils.startBossFight(player);
-						}
+                            try {
+                                BossQuestUtils.startBossFight(player);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
 
 					}.runTaskLater(HycraftQuestsAddons.getInstance(), 5*20);
 
@@ -153,10 +179,23 @@ public class ArrowListener implements Listener
 		}
 	}
 
-	public static Location getRandomCristal(Location arenaLocation)
-	{
-		Random random = new Random();
-		Vector vec = relativeCristalsPos.get(random.nextInt(8));
-		return arenaLocation.clone().add(vec);
-	}
+    public static List<Location> getRandomCristals(Location arenaLocation, int n) {
+        List<Integer> indices = new ArrayList<>();
+        for (int i = 0; i < 8; i++) {
+            indices.add(i);
+        }
+
+        Collections.shuffle(indices);
+
+        List<Location> selectedLocations = new ArrayList<>();
+        int limit = Math.min(n, indices.size());
+
+        for (int i = 0; i < limit; i++) {
+            int index = indices.get(i);
+            Vector vec = relativeCristalsPos.get(index);
+            selectedLocations.add(arenaLocation.clone().add(vec));
+        }
+
+        return selectedLocations;
+    }
 }

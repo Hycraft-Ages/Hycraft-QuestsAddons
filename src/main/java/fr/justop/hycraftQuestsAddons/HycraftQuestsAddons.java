@@ -23,11 +23,14 @@ import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -78,12 +81,12 @@ public final class HycraftQuestsAddons extends JavaPlugin {
     private final Map<UUID, ActiveMob> bosses = new HashMap<>();
     private final Map<UUID, Boolean> spiritPlayers = new HashMap<>();
     private final Map<UUID, List<Location>> puzzleProgress = new HashMap<>();
-    private final Set<ActiveMob> frozenBosses = new HashSet<>();
-    private final Map<UUID, Location> activeCristalPos = new HashMap<>();
+    private final List<UUID> frozenBosses = new ArrayList<>();
+    private final Map<UUID, List<Location>> activeCristalPos = new HashMap<>();
     private final Map<UUID, BukkitRunnable> actionbarTasks = new HashMap<>();
     private final Map<UUID, Integer> shieldPlayers = new HashMap<>();
+    private NamespacedKey KIT_ITEM_KEY;
     private DBManager database;
-
 
 
     @Override
@@ -91,6 +94,7 @@ public final class HycraftQuestsAddons extends JavaPlugin {
 
         instance = this;
         questsAPI = QuestsAPI.getAPI();
+        KIT_ITEM_KEY = new NamespacedKey(HycraftQuestsAddons.getInstance(), "challenge_kit_item");
 
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new HycraftQuestsPlaceholder(HycraftQuestsAddons.getQuestsAPI()).register();
@@ -118,8 +122,8 @@ public final class HycraftQuestsAddons extends JavaPlugin {
         ));
 
         regions.put("DiploOpenRegion", new CuboidRegion(
-                new Location(Bukkit.getWorld("prehistoire"), -50, 219, 208),
-                new Location(Bukkit.getWorld("prehistoire"), -50, 217, 206),
+                new Location(Bukkit.getWorld("prehistoire"), -50, 220, 209),
+                new Location(Bukkit.getWorld("prehistoire"), -51, 216, 205),
                 null
         ));
 
@@ -171,6 +175,7 @@ public final class HycraftQuestsAddons extends JavaPlugin {
         this.getCommand("sword").setExecutor(new ConsoleCommand());
         this.getCommand("horse").setExecutor(new ConsoleCommand());
         this.getCommand("giveCompassGoats").setExecutor(new ConsoleCommand());
+        this.getCommand("rankuptitle").setExecutor(new ConsoleCommand());
     }
 
     private void initializeStages()
@@ -225,6 +230,15 @@ public final class HycraftQuestsAddons extends JavaPlugin {
 
     public void restoreInventory(Player player) {
         UUID uuid = player.getUniqueId();
+        List<ItemStack> earnedItems = new ArrayList<>();
+        for (ItemStack item : player.getInventory().getContents()) {
+            if (item == null || item.getType() == Material.AIR) continue;
+
+            ItemMeta meta = item.getItemMeta();
+            if (meta != null && !meta.getPersistentDataContainer().has(KIT_ITEM_KEY, PersistentDataType.BYTE)) {
+                earnedItems.add(item);
+            }
+        }
 
         Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
             try (PreparedStatement ps = database.getConnection().prepareStatement(
@@ -234,9 +248,9 @@ public final class HycraftQuestsAddons extends JavaPlugin {
                 try (ResultSet rs = ps.executeQuery()) {
 
                     if (!rs.next()) {
-                        getLogger().warning("Aucune sauvegarde trouvée pour " + player.getName());
                         return;
                     }
+                    player.getInventory().clear();
 
                     byte[] invData = rs.getBytes("inventory");
                     byte[] armorData = rs.getBytes("armor");
@@ -252,23 +266,34 @@ public final class HycraftQuestsAddons extends JavaPlugin {
                     int food = rs.getInt("food");
 
                     Bukkit.getScheduler().runTask(this, () -> {
+                        if (!player.isOnline()) return;
+
                         try {
                             player.getInventory().setContents(inventory);
                             player.getInventory().setArmorContents(armor);
-                            player.getInventory().setItemInOffHand(offhand[0]);
+                            player.getInventory().setItemInOffHand(offhand.length > 0 ? offhand[0] : null);
 
                             player.setExp(xp);
                             player.setLevel(level);
-                            player.setHealth(health);
+                            player.setHealth(Math.min(health, player.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()));
                             player.setFoodLevel(food);
+
+                            for (ItemStack item : earnedItems) {
+                                HashMap<Integer, ItemStack> leftOver = player.getInventory().addItem(item);
+
+                                if (!leftOver.isEmpty()) {
+                                    for (ItemStack dropped : leftOver.values()) {
+                                        player.getWorld().dropItemNaturally(player.getLocation(), dropped);
+                                    }
+                                }
+                            }
 
                             removeInventoryBackup(uuid);
                         } catch (Exception e) {
-                            getLogger().severe("Erreur lors de la restauration de l'inventaire pour " + player.getName());
+                            getLogger().severe("Erreur lors de l'application de l'inventaire pour " + player.getName());
                             e.printStackTrace();
                         }
                     });
-
                 }
             } catch (Exception e) {
                 getLogger().severe("Impossible de restaurer l'inventaire de " + player.getName());
@@ -278,7 +303,7 @@ public final class HycraftQuestsAddons extends JavaPlugin {
     }
 
     private void removeInventoryBackup(UUID uuid) {
-        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+        Runnable deleteTask = () -> {
             try (PreparedStatement ps = database.getConnection().prepareStatement(
                     "DELETE FROM player_inventory WHERE uuid = ?"
             )) {
@@ -288,46 +313,58 @@ public final class HycraftQuestsAddons extends JavaPlugin {
                 getLogger().severe("Impossible de supprimer l'inventaire sauvegardé pour " + uuid);
                 e.printStackTrace();
             }
-        });
+        };
+        if (Bukkit.isPrimaryThread()) {
+            Bukkit.getScheduler().runTaskAsynchronously(this, deleteTask);
+        } else {
+            deleteTask.run();
+        }
     }
 
-    public static void saveInventory(Player player) {
+    public static void saveInventory(Player player) throws IOException {
+
+        UUID uuid = player.getUniqueId();
+
+        byte[] contentData = ItemSerializer.serialize(player.getInventory().getContents());
+        byte[] armorData = ItemSerializer.serialize(player.getInventory().getArmorContents());
+        byte[] offhandData = ItemSerializer.serialize(new ItemStack[]{player.getInventory().getItemInOffHand()});
+
+        float xp = player.getExp();
+        int level = player.getLevel();
+        double health = player.getHealth();
+        int food = player.getFoodLevel();
+        long timestamp = System.currentTimeMillis();
+
+        player.getInventory().clear();
+
         Bukkit.getScheduler().runTaskAsynchronously(getInstance(), () -> {
             try (PreparedStatement ps = getInstance().getDatabase().getConnection().prepareStatement(
                     "REPLACE INTO player_inventory VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
             )) {
-                ps.setString(1, player.getUniqueId().toString());
-                ps.setBytes(2, ItemSerializer.serialize(player.getInventory().getContents()));
-                ps.setBytes(3, ItemSerializer.serialize(player.getInventory().getArmorContents()));
-                ps.setBytes(4, ItemSerializer.serialize(
-                        new ItemStack[]{player.getInventory().getItemInOffHand()}
-                ));
-                ps.setFloat(5, player.getExp());
-                ps.setInt(6, player.getLevel());
-                ps.setDouble(7, player.getHealth());
-                ps.setInt(8, player.getFoodLevel());
-                ps.setLong(9, System.currentTimeMillis());
+                ps.setString(1, uuid.toString());
+                ps.setBytes(2, contentData);
+                ps.setBytes(3, armorData);
+                ps.setBytes(4, offhandData);
+                ps.setFloat(5, xp);
+                ps.setInt(6, level);
+                ps.setDouble(7, health);
+                ps.setInt(8, food);
+                ps.setLong(9, timestamp);
 
                 ps.executeUpdate();
-            } catch (Exception e) {
+            } catch (SQLException e) {
+                getInstance().getLogger().severe("Erreur lors de la sauvegarde de l'inventaire de " + uuid);
                 e.printStackTrace();
             }
         });
-
-        player.getInventory().clear();
     }
 
     public static void removeNearbyEntities(Player player) {
         World world = player.getWorld();
         world.getEntities().stream()
                 .filter(entity -> entity.getLocation().distance(player.getLocation()) <= 100 && !(entity instanceof Player) &&
-                        (isSpecificMythicMob(entity,"Plante_mutante") ||
-                        isSpecificMythicMob(entity,"Mutant_Vine_SUMMON") ||
-                        isSpecificMythicMob(entity,"Mutant_Vine") ||
-                        isSpecificMythicMob(entity, "Stinger") ||
-                        isSpecificMythicMob(entity,"Golem_de_pierre") ||
-                        isSpecificMythicMob(entity, "Salamandre") ||
-                        isSpecificMythicMob(entity, "VanillaSpider")))
+                        MythicBukkit.inst().getAPIHelper().isMythicMob(entity) &&
+                        !isSpecificMythicMob(entity, "Boss_prehistoire_quete"))
                 .forEach(Entity::remove);
     }
 
@@ -341,6 +378,8 @@ public final class HycraftQuestsAddons extends JavaPlugin {
     public List<Location> getTriggerLocations() {
         return this.triggerLocations;
     }
+
+    public NamespacedKey getKIT_ITEM_KEY() {return KIT_ITEM_KEY;}
 
     public static QuestsAPI getQuestsAPI() {
         return questsAPI;
@@ -424,11 +463,11 @@ public final class HycraftQuestsAddons extends JavaPlugin {
         return puzzleProgress;
     }
 
-    public Set<ActiveMob> getFrozenBosses() {
+    public List<UUID> getFrozenBosses() {
         return frozenBosses;
     }
 
-    public Map<UUID, Location> getActiveCristalPos() {
+    public Map<UUID, List<Location>> getActiveCristalPos() {
         return activeCristalPos;
     }
 

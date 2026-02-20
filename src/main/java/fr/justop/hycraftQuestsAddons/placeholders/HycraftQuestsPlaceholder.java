@@ -67,7 +67,7 @@ public class HycraftQuestsPlaceholder extends PlaceholderExpansion {
         Quester acc = questsAPI.getPlugin().getPlayersManager().getQuester(player);
 
         if (acc == null) {
-            return "§7Statut: Ꙧ";
+            return "§7§lStatut: §cNon-commencé";
         }
 
         Quest quest = questsAPI.getQuestsManager().getQuest(questID);
@@ -79,14 +79,14 @@ public class HycraftQuestsPlaceholder extends PlaceholderExpansion {
         QuesterQuestData questData = acc.getDataHolder().getQuestData(quest);
 
         if (questData == null || !questData.hasStarted()) {
-            return "§7Statut: §fꙦ";
+            return "§7Statut: §e§lEn cours...";
         }
 
         if (questData.hasFinishedOnce()) {
             return "§7Statut: §fꙥ";
         }
 
-        int stage = questData.getStage().getAsInt();
+        int stage = questData.getStage().orElse(-1);
 
         if (quest.getBranchesManager().getPlayerBranch(acc) != null) {
             String desc = quest.getBranchesManager()
