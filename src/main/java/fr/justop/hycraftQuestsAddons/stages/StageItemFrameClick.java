@@ -1,6 +1,5 @@
 package fr.justop.hycraftQuestsAddons.stages;
 
-import fr.justop.hycraftQuestsAddons.objects.BQLocation;
 import fr.skytasul.quests.api.editors.WaitBlockClick;
 import fr.skytasul.quests.api.gui.ItemUtils;
 import fr.skytasul.quests.api.localization.Lang;
@@ -12,17 +11,20 @@ import fr.skytasul.quests.api.stages.creation.StageCreationContext;
 import fr.skytasul.quests.api.stages.creation.StageGuiLine;
 import fr.skytasul.quests.api.stages.types.Locatable;
 import com.cryptomorin.xseries.XMaterial;
+import fr.skytasul.quests.api.utils.messaging.HasPlaceholders;
+import fr.skytasul.quests.api.utils.messaging.PlaceholderRegistry;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.inventory.EquipmentSlot;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -30,27 +32,32 @@ import java.util.Objects;
 @Locatable.LocatableType(types = { Locatable.LocatedType.BLOCK, Locatable.LocatedType.OTHER })
 public class StageItemFrameClick extends AbstractStage implements Locatable.PreciseLocatable, Listener {
 
-    private final @NotNull BQLocation lc;
+    private final String worldName;
+    private final int x, y, z;
 
     private Locatable.Located.LocatedBlock locatedBlock;
 
-    public StageItemFrameClick(@NotNull StageController controller, @NotNull BQLocation location) {
+    public StageItemFrameClick(@NotNull StageController controller, String worldName, int x, int y, int z) {
         super(controller);
-        this.lc = new BQLocation(location.getWorld(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
+        this.worldName = worldName;
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 
     public @NotNull Location getLocation() {
-        return lc;
+        World world = Bukkit.getWorld(worldName);
+        return new Location(world, x, y, z);
     }
 
     @Override
     public Locatable.Located getLocated() {
-        if (lc == null)
-            return null;
+        World world = Bukkit.getWorld(worldName);
+        if (world == null) return null; // Sécurité si le monde n'est pas encore chargé
+
         if (locatedBlock == null) {
-            Block realBlock = lc.getBlock();
-            if (realBlock != null)
-                locatedBlock = Locatable.Located.LocatedBlock.create(realBlock);
+            Block realBlock = world.getBlockAt(x, y, z);
+            locatedBlock = Locatable.Located.LocatedBlock.create(realBlock);
         }
         return locatedBlock;
     }
@@ -60,7 +67,14 @@ public class StageItemFrameClick extends AbstractStage implements Locatable.Prec
         if (e.getRightClicked().getType() != EntityType.ITEM_FRAME) return;
 
         ItemFrame itemFrame = (ItemFrame) e.getRightClicked();
-        if (!lc.equals(BQLocation.of(getAttachedBlock(itemFrame).getLocation()))) return;
+        Location attachedLoc = getAttachedBlock(itemFrame).getLocation();
+
+        if (attachedLoc.getWorld() == null || !attachedLoc.getWorld().getName().equals(this.worldName) ||
+                attachedLoc.getBlockX() != this.x ||
+                attachedLoc.getBlockY() != this.y ||
+                attachedLoc.getBlockZ() != this.z) {
+            return;
+        }
 
         Player p = e.getPlayer();
 
@@ -77,12 +91,27 @@ public class StageItemFrameClick extends AbstractStage implements Locatable.Prec
 
     @Override
     protected void serialize(ConfigurationSection section) {
-        section.set("location", lc.serialize());
+        section.set("world", worldName);
+        section.set("x", x);
+        section.set("y", y);
+        section.set("z", z);
     }
 
     public static StageItemFrameClick deserialize(ConfigurationSection section, StageController controller) {
-        return new StageItemFrameClick(controller,
-                BQLocation.deserialize(section.getConfigurationSection("location").getValues(false)));
+        if (section.contains("location")) {
+            ConfigurationSection locSec = section.getConfigurationSection("location");
+            if (locSec != null && locSec.contains("world")) {
+                return new StageItemFrameClick(controller, locSec.getString("world"), locSec.getInt("x"), locSec.getInt("y"), locSec.getInt("z"));
+            }
+        }
+
+        return new StageItemFrameClick(
+                controller,
+                section.getString("world"),
+                section.getInt("x"),
+                section.getInt("y"),
+                section.getInt("z")
+        );
     }
 
     public Block getAttachedBlock(ItemFrame itemFrame) {
@@ -90,10 +119,9 @@ public class StageItemFrameClick extends AbstractStage implements Locatable.Prec
         return itemFrame.getLocation().getBlock().getRelative(attachedFace);
     }
 
-
     public static class Creator extends StageCreation<StageItemFrameClick> {
 
-        private BQLocation location;
+        private Location location;
 
         public Creator(@NotNull StageCreationContext<StageItemFrameClick> context) {
             super(context);
@@ -113,8 +141,19 @@ public class StageItemFrameClick extends AbstractStage implements Locatable.Prec
         }
 
         public void setLocation(@NotNull Location location) {
-            this.location = BQLocation.of(Objects.requireNonNull(location));
-            getLine().refreshItemLoreOptionValue(7, Lang.Location.format(this.location));
+            this.location = location;
+
+            String worldName = location.getWorld() != null ? location.getWorld().getName() : "Monde inconnu";
+            String formattedText = worldName + " (" + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ() + ")";
+
+            getLine().refreshItemLoreOptionValue(7, new HasPlaceholders() {
+                @Override
+                public @NotNull PlaceholderRegistry getPlaceholdersRegistry() {
+                    PlaceholderRegistry registry = new PlaceholderRegistry();
+                    registry.register("location", () -> formattedText);
+                    return registry;
+                }
+            });
         }
 
         @Override
@@ -135,7 +174,7 @@ public class StageItemFrameClick extends AbstractStage implements Locatable.Prec
 
         @Override
         public StageItemFrameClick finishStage(StageController controller) {
-            return new StageItemFrameClick(controller, location);
+            return new StageItemFrameClick(controller, location.getWorld().getName(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
         }
     }
 }
