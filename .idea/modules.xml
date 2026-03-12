@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Hycraft-QuestsAddons.iml" filepath="$PROJECT_DIR$/Hycraft-QuestsAddons.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/Hycraft-QuestsAddons.iml" filepath="$PROJECT_DIR$/.idea/Hycraft-QuestsAddons.iml" />
     </modules>
   </component>
 </project>

@@ -72,7 +72,7 @@ public class PlayerCommand implements CommandExecutor, TabCompleter {
 				{
 					instance.getPhase2().put(player.getUniqueId(), "active");
 					player.sendMessage(HycraftQuestsAddons.PREFIX + "§eVous avez rejoint la quête avec succès la où vous en étiez. Xandros ayant perdu le contact avec vous, vous devez trouver un moyen par vous même pour échapper au diplodocus.");
-					player.teleport(new Location(Bukkit.getWorld("Prehistoire"), -35, 215, 207, 90f, 0f));
+					player.teleport(new Location(Bukkit.getWorld("Prehistoire"), -35, 215, 207.5, 90f, 0f));
 					player.setGameMode(GameMode.ADVENTURE);
 				}
 				break;

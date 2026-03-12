@@ -116,20 +116,20 @@ public class GoatsListener implements Listener
 					ItemStack item = player.getInventory().getItemInMainHand();
 					if (isTrackingCompass(item)) {
 						Location playerLocation = player.getLocation();
-						CNPlayer cnPlayer = CustomNameplatesAPI.getInstance().getPlayer(player.getUniqueId());
 
-						CompletableFuture.supplyAsync(() -> findNearestNpc(player, playerLocation))
-								.thenAccept(nearest -> {
-									if (nearest != null && player.isOnline()) {
-										UUID uuid = player.getUniqueId();
-										String reserveId = "questsaddon:traqueur-" + uuid;
+						Location nearest = findNearestNpc(player, playerLocation);
 
-										if (cnPlayer != null) {
-											cnPlayer.acquireActionBar(reserveId);
-											player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(ChatColor.YELLOW + "Chèvre détectée à " + ChatColor.RED + Math.round(nearest.distance(playerLocation) * 10.0) / 10.0 + ChatColor.YELLOW + " blocks"));
-										}
-									}
-								});
+						if (nearest != null) {
+							double distance = playerLocation.distance(nearest);
+							CNPlayer cnPlayer = CustomNameplatesAPI.getInstance().getPlayer(player.getUniqueId());
+
+							if (cnPlayer != null) {
+								String reserveId = "questsaddon:traqueur-" + player.getUniqueId();
+								cnPlayer.acquireActionBar(reserveId);
+								player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+										TextComponent.fromLegacyText(ChatColor.YELLOW + "Chèvre détectée à " + ChatColor.RED + Math.round(distance * 10.0) / 10.0 + ChatColor.YELLOW + " blocs"));
+							}
+						}
 					}
 				}
 			}
@@ -142,39 +142,39 @@ public class GoatsListener implements Listener
 	}
 
 	private static Location findNearestNpc(Player player, Location playerLocation) {
-		NPC nearestNpc = null;
-		double minDistance = Double.MAX_VALUE;
-		List<Integer> remainingGoats = new ArrayList<>();
+		Location nearestLoc = null;
+		double minDistanceSquared = Double.MAX_VALUE;
 
-		for (int i = 84 ; i < 94 ; i++)
-		{
-			if (!(HycraftQuestsAddons.getInstance().getGoatsCounter().get(player.getUniqueId()).contains(i)))
-			{
-				remainingGoats.add(i);
+		List<Integer> playerGoats = HycraftQuestsAddons.getInstance().getGoatsCounter().get(player.getUniqueId());
+		if (playerGoats == null) return null;
+
+		for (int i = 84 ; i < 94 ; i++) {
+			if (!playerGoats.contains(i)) {
+				NPC npc = CitizensAPI.getNPCRegistry().getById(i);
+				if (npc != null && npc.isSpawned() && npc.getEntity() != null) {
+					Location npcLoc = npc.getEntity().getLocation();
+
+					if (npcLoc.getWorld() != null && npcLoc.getWorld().equals(playerLocation.getWorld())) {
+						double distanceSquared = playerLocation.distanceSquared(npcLoc);
+						if (distanceSquared < minDistanceSquared) {
+							minDistanceSquared = distanceSquared;
+							nearestLoc = npcLoc;
+						}
+					}
+				}
 			}
 		}
-
-		for (int npcId : remainingGoats) {
-			NPC npc = CitizensAPI.getNPCRegistry().getById(npcId);
-			if (npc != null) {
-				double distance = playerLocation.distance(npc.getEntity().getLocation());
-				if (distance < minDistance) {
-					minDistance = distance;
-					nearestNpc = npc;
+		if (!playerGoats.contains(94)) {
+			Location headLoc = new Location(Bukkit.getWorld("Prehistoire"), -435, 2, 302);
+			if (headLoc.getWorld() != null && headLoc.getWorld().equals(playerLocation.getWorld())) {
+				double distanceSquared = playerLocation.distanceSquared(headLoc);
+				if (distanceSquared < minDistanceSquared) {
+					nearestLoc = headLoc;
 				}
 			}
 		}
 
-		double distance2 = playerLocation.distance(new Location(Bukkit.getWorld("Prehistoire"), -435, 2, 302));
-		if(!(HycraftQuestsAddons.getInstance().getGoatsCounter().get(player.getUniqueId()).contains(94)))
-		{
-			if(distance2 < minDistance){
-				return new Location(Bukkit.getWorld("Prehistoire"), -435, 2, 302);
-			}
-		}
-
-		if(nearestNpc == null) return null;
-		return nearestNpc.getEntity().getLocation();
+		return nearestLoc;
 	}
 }
 

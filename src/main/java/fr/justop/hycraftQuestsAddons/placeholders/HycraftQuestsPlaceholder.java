@@ -5,10 +5,13 @@ import fr.skytasul.quests.api.options.description.DescriptionSource;
 import fr.skytasul.quests.api.questers.Quester;
 import fr.skytasul.quests.api.questers.data.QuesterQuestData;
 import fr.skytasul.quests.api.quests.Quest;
+import fr.skytasul.quests.api.quests.branches.QuestBranch;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.OptionalInt;
 
 public class HycraftQuestsPlaceholder extends PlaceholderExpansion {
 
@@ -73,31 +76,36 @@ public class HycraftQuestsPlaceholder extends PlaceholderExpansion {
         Quest quest = questsAPI.getQuestsManager().getQuest(questID);
 
         if (quest == null) {
-            return "§cErreur (contactez un membre du staff).";
+            return "§cErreur: Quête introuvable.";
         }
 
         QuesterQuestData questData = acc.getDataHolder().getQuestData(quest);
 
         if (questData == null || !questData.hasStarted()) {
-            return "§7Statut: §e§lEn cours...";
+            return "§7Statut: §e§lNon commencée";
         }
 
         if (questData.hasFinishedOnce()) {
             return "§7Statut: §fꙥ";
         }
 
-        int stage = questData.getStage().orElse(-1);
+        OptionalInt stageOptional = questData.getStage();
+        QuestBranch branch = quest.getBranchesManager().getPlayerBranch(acc);
 
-        if (quest.getBranchesManager().getPlayerBranch(acc) != null) {
-            String desc = quest.getBranchesManager()
-                    .getPlayerBranch(acc)
-                    .getRegularStage(stage)
-                    .getDescriptionLine(acc, DescriptionSource.MENU);
+        if (stageOptional.isPresent() && branch != null) {
+            int currentStageIndex = stageOptional.getAsInt();
+            if (currentStageIndex >= 0 && currentStageIndex < branch.getRegularStages().size()) {
 
-            if (desc != null && !desc.isEmpty()) {
-                return "§7Statut: Ꙥ\n\n§a" + desc;
+                String desc = branch.getRegularStage(currentStageIndex)
+                        .getDescriptionLine(acc, DescriptionSource.MENU);
+
+                if (desc != null && !desc.isEmpty()) {
+                    return "§7Statut: Ꙥ\n\n§a" + desc;
+                } else {
+                    return "§eAucune description pour cette étape.";
+                }
             } else {
-                return "§eAucune description pour cette étape.";
+                return "§cÉtape de quête invalide (Index " + currentStageIndex + ").";
             }
         }
 

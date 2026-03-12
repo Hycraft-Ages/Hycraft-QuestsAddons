@@ -86,6 +86,7 @@ public final class HycraftQuestsAddons extends JavaPlugin {
     private final Map<UUID, BukkitRunnable> actionbarTasks = new HashMap<>();
     private final Map<UUID, Integer> shieldPlayers = new HashMap<>();
     private NamespacedKey KIT_ITEM_KEY;
+    private ConfigManager configManager;
     private DBManager database;
 
 
@@ -104,6 +105,7 @@ public final class HycraftQuestsAddons extends JavaPlugin {
         }
 
         database = new DBManager(this);
+        configManager = new ConfigManager(this);
         database.connect();
         database.createTable();
 
@@ -478,4 +480,8 @@ public final class HycraftQuestsAddons extends JavaPlugin {
     public Map<UUID, Integer> getShieldPlayers() {return shieldPlayers;}
 
     public DBManager getDatabase() {return database;}
+
+    public ConfigManager getConfigManager() {
+        return configManager;
+    }
 }

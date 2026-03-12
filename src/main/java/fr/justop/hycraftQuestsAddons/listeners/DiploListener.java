@@ -19,7 +19,9 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 public class DiploListener implements Listener
 {
@@ -70,28 +72,29 @@ public class DiploListener implements Listener
 		}
 	}
 
-	@EventHandler
-	public void onPlayerCommand(PlayerCommandPreprocessEvent event) {
-		Player player = event.getPlayer();
-		if(event.getMessage().equalsIgnoreCase("/q interrupt") || event.getMessage().equalsIgnoreCase("/q rejoin")) return;
-		if (HycraftQuestsAddons.getInstance().getPhase2().containsKey(player.getUniqueId())) {
-			if(HycraftQuestsAddons.getInstance().getPhase2().get(player.getUniqueId()) == "active")
-			{
-				event.setCancelled(true);
-				player.sendMessage(HycraftQuestsAddons.PREFIX + "§eVous ne pouvez pas executer de commande tant que la quête est en cours! Utilisez §6/q interrupt §epour interrompre la quête, vous pourrez la rejoindre plus tard.");
-				return;
-			}
+    @EventHandler
+    public void onPlayerCommand(PlayerCommandPreprocessEvent event) {
+        Player player = event.getPlayer();
+        UUID uuid = player.getUniqueId();
+        String message = event.getMessage().toLowerCase();
 
-		}
-		if (HycraftQuestsAddons.getInstance().getPhase1().containsKey(player.getUniqueId())) {
-			if(HycraftQuestsAddons.getInstance().getPhase1().get(player.getUniqueId()) == "active")
-			{
-				event.setCancelled(true);
-				player.sendMessage(HycraftQuestsAddons.PREFIX + "§eVous ne pouvez pas executer de commande tant que la quête est en cours! Utilisez §6/q interrupt §epour interrompre la quête, vous pourrez la rejoindre plus tard.");
-			}
+        List<String> whitelist = HycraftQuestsAddons.getInstance().getConfigManager().getWhitelistConfig().getStringList("allowed-commands");
 
-		}
-	}
+        for (String allowed : whitelist) {
+            if (message.startsWith(allowed.toLowerCase())) {
+                return;
+            }
+        }
+
+        boolean inPhase1 = "active".equals(HycraftQuestsAddons.getInstance().getPhase1().get(uuid));
+        boolean inPhase2 = "active".equals(HycraftQuestsAddons.getInstance().getPhase2().get(uuid));
+
+        if (inPhase1 || inPhase2) {
+            event.setCancelled(true);
+            String msg = HycraftQuestsAddons.getInstance().getConfigManager().getWhitelistConfig().getString("deny-message");
+            player.sendMessage(HycraftQuestsAddons.PREFIX + msg);
+        }
+    }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
@@ -106,7 +109,7 @@ public class DiploListener implements Listener
                 Quester acc = questsAPI.getPlugin().getPlayersManager().getQuester(player);
 
                 if (acc == null) {
-                    player.sendMessage("§cEnvoie un mp à JustOp (code d'erreur 112)");
+                    player.sendMessage("§cContactez un administrateur (code d'erreur 114)");
                     return;
                 }
                 Quest quest115 = questsAPI.getQuestsManager().getQuest(115);

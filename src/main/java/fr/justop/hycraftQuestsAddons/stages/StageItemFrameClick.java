@@ -46,14 +46,22 @@ public class StageItemFrameClick extends AbstractStage implements Locatable.Prec
     }
 
     public @NotNull Location getLocation() {
-        World world = Bukkit.getWorld(worldName);
+        if (this.worldName == null) {
+            return new Location(Bukkit.getWorlds().get(0), 0, 0, 0);
+        }
+
+        World world = Bukkit.getWorld(this.worldName);
+        if (world == null) {
+            return new Location(Bukkit.getWorlds().get(0), 0, 0, 0);
+        }
+
         return new Location(world, x, y, z);
     }
 
     @Override
     public Locatable.Located getLocated() {
         World world = Bukkit.getWorld(worldName);
-        if (world == null) return null; // Sécurité si le monde n'est pas encore chargé
+        if (world == null) return null;
 
         if (locatedBlock == null) {
             Block realBlock = world.getBlockAt(x, y, z);

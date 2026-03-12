@@ -29,6 +29,7 @@ fr\justop\hycraftQuestsAddons\listeners\ArenaListener$2.class
 fr\justop\hycraftQuestsAddons\objects\CuboidRegion.class
 fr\justop\hycraftQuestsAddons\commands\ConsoleCommand$3.class
 fr\justop\hycraftQuestsAddons\BossQuestUtils$1.class
+fr\justop\hycraftQuestsAddons\ConfigManager.class
 fr\justop\hycraftQuestsAddons\DBManager.class
 fr\justop\hycraftQuestsAddons\stages\StageItemFrameClick$Creator.class
 fr\justop\hycraftQuestsAddons\ItemSerializer.class
@@ -43,6 +44,7 @@ fr\justop\hycraftQuestsAddons\listeners\DiploListener.class
 fr\justop\hycraftQuestsAddons\BossQuestUtils$2.class
 fr\justop\hycraftQuestsAddons\commands\ConsoleCommand$4.class
 fr\justop\hycraftQuestsAddons\listeners\ComposterLaunch$2$1$1.class
+fr\justop\hycraftQuestsAddons\stages\StageItemFrameClick$Creator$1.class
 fr\justop\hycraftQuestsAddons\BossQuestUtils$5.class
 fr\justop\hycraftQuestsAddons\listeners\ArrowListener$1.class
 fr\justop\hycraftQuestsAddons\listeners\ArrowListener.class

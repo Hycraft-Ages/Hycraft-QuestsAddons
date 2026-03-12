@@ -58,6 +58,7 @@ public class ArenaListener implements Listener
                     if (HycraftQuestsAddons.getInstance().getShieldPlayers().containsKey(player.getUniqueId())){
                         if (HycraftQuestsAddons.getInstance().getMobsKilled().get(player.getUniqueId()) < 20) return;
                     }
+                    HycraftQuestsAddons.getInstance().getActivePlayers().remove(player.getUniqueId());
                     player.sendMessage(HycraftQuestsAddons.PREFIX + "§aVous êtes parvenu à vaincre toutes les vagues! Téléportation dans 5 secondes...");
                     player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
                     launchFireworks(player);
@@ -296,7 +297,7 @@ public class ArenaListener implements Listener
             acc.getDataHolder().getQuestData(Objects.requireNonNull(questsAPI.getQuestsManager().getQuest(138))).setStage(OptionalInt.of(1));
         }
 
-        player.sendMessage(HycraftQuestsAddons.PREFIX + "§cTu as échoué! Tache d'être plus agile au prochain essai!");
+        player.sendMessage(HycraftQuestsAddons.PREFIX + "§cVous avez échoué! Tachez d'être plus agile au prochain essai!");
         player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 1.0f);
 
     }

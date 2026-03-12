@@ -270,11 +270,6 @@ public class BossQuestUtils {
 		ItemStack ironLeggings = new ItemStack(Material.NETHERITE_LEGGINGS);
 		ItemStack ironBoots = new ItemStack(Material.NETHERITE_BOOTS);
 
-		ironHelmet.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 1);
-		ironChestplate.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 1);
-		ironLeggings.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 1);
-		ironBoots.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 1);
-
 		player.getInventory().setArmorContents(new ItemStack[]{ironBoots, ironLeggings, ironChestplate, ironHelmet});
 
 		Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"n give epee_chronite_t3 1 " + player.getName());
